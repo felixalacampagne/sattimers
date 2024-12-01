@@ -24,6 +24,7 @@ public formatTimerDate(owiDate : number){
    // the claim that getDay() is not a function - obviously it is a forking function.
    // THe log output of the date is a number - should be a formatted date string.
    let date : Date = new Date(epochtime); 
+   console.log("formatTimerDate: owiDate:" + owiDate + " epochtime:" + epochtime + " date:" + date);
    return this.formatDate(date);
 }
 public formatDate(d: Date)
