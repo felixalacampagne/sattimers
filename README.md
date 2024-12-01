@@ -12,7 +12,7 @@ which was created when I initialized the project using the command I found via g
 nothing in the Angular docs about how to setup a new application using the tools)
 
 30 Nov 2024 Had the stupid idea to convert the very old timer listing and edit pages used to program
-recordings my Enigma2 based satellite receivers (SR) to Angular. The original pages use 'Ajax' to obtain a list
+recordings on my Enigma2 based satellite receivers (SR) to Angular. The original pages use 'Ajax' to obtain a list
 of recordings, known as 'timers', in JSON format. I remember nothing of 'Ajax' and the pages are 
 very awkward to use on a mobile phone and I've just installed a new satellite receiver which required
 tweaks to the code so I thought now would be a good time to update the pages. Big laugh! Once again
