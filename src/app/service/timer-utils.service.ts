@@ -7,6 +7,10 @@ import { Injectable } from "@angular/core";
  })
  export class TimerUtilsService 
  {
+
+gDaysShort : string [] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];  
+gMonths  : string [] = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+   
    constructor()
    {
    }
@@ -14,24 +18,33 @@ import { Injectable } from "@angular/core";
 // owiDate - date in OpenWebIF format, ie. seconds since the epoch instead of milliseconds
 public formatTimerDate(owiDate : number){
    
-   var epochtime = Math.round(owiDate) * 1000;
-   var date = new Date(epochtime);
+   let epochtime : number = Math.round(owiDate) * 1000;
+   let date : Date = new Date(epochtime);
    return this.formatDate(date);
 }
-public formatDate(dateObj: Date)
+public formatDate(d: Date)
 {
-var dispdate;
-   dispdate = "" + gDaysShort[dateObj.getDay()]; 
-   dispdate += " " + zeropad(dateObj.getDate(),2);
-   dispdate += " " + gMonths[dateObj.getMonth()];
-   dispdate += " " + dateObj.getFullYear();
-   // TODO find out whether getHours is local time or UTC
-   
-   dispdate += " " + zeropad(dateObj.getHours(),2);
-   dispdate += ":" + zeropad(dateObj.getMinutes(),2); 
+   console.log("formatDate: d:" + d);
+   let dispdate : string;
+   let idx : number;
+   // browser claims dateObj.getDay is not a function
+   idx = d.getDay();
+   dispdate = "" + this.gDaysShort[idx]; 
+   dispdate += " " + this.zeropad(d.getDate(),2);
+   dispdate += " " + this.gMonths[d.getMonth()];
+   dispdate += " " + d.getFullYear();
+   dispdate += " " + this.zeropad(d.getHours(),2);
+   dispdate += ":" + this.zeropad(d.getMinutes(),2); 
    
    
    return dispdate; //date.toLocaleString(); 
 }
- 
+
+zeropad(num : number, cnt : number)
+{
+	let pad : string = "000000000000000000000000000000"+num;
+	pad = pad.substr(pad.length-cnt, cnt);
+	return pad;
+}
+
 }

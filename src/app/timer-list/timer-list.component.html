@@ -23,16 +23,21 @@
        </ng-container>
        <ng-container matColumnDef="start">
          <th mat-header-cell *matHeaderCellDef>Start</th>
-         <td mat-cell *matCellDef="let t">{{t.begin}}</td>
+         <td mat-cell *matCellDef="let t">{{utils.formatDate(t.begin)}}</td>
        </ng-container>
        <ng-container matColumnDef="end">
          <th mat-header-cell *matHeaderCellDef>End</th>
-         <td mat-cell *matCellDef="let t">{{t.end}}</td>
+         <td mat-cell *matCellDef="let t">{{utils.formatDate(t.end)}}</td>
        </ng-container>
        <ng-container matColumnDef="options">
          <th mat-header-cell *matHeaderCellDef>Options</th>
-         <td mat-cell *matCellDef="let t">
-            <button class="" (click)="edittimer(t)" title="Edit"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+         <td style='white-space: nowrap' mat-cell *matCellDef="let t">
+            <button class="" (click)="edittimer(t)" title="Edit">
+               <mat-icon aria-hidden="false" aria-label="Edit timer" fontIcon="edit"></mat-icon>
+            </button>
+            <button class="" (click)="deletetimer(t)" title="Cancel">
+               <mat-icon aria-hidden="false" aria-label="Cancel timer" fontIcon="cancel"></mat-icon>
+            </button>            
          </td>
        </ng-container>
    
@@ -40,26 +45,4 @@
        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       
    </table>
-
-
-   <table class="table table-striped table-sm">
-   <thead class="thead-inverse">
-      <TR class='rowhead'><TH>Programme</TH><TH>Channel</TH><TH>Repeated</TH><TH>Duration</TH><TH>Start</TH><TH>End</TH><TH>Options</TH><TR>
-   </thead>
-   <tbody>
-   <tr *ngFor="let t of timers">
-   <td>{{t.name}}</td>
-   <td>{{t.servicename}}</td>
-   <td>{{t.repeated}}</td>
-   <td>{{t.end - t.begin}}</td>
-   <td>{{t.begin}}</td>
-   <td>{{t.end}}</td>
-   <td>
-   <button class="" (click)="edittimer(t)" title="Edit"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
-   </td>
-   </tr>
-   </tbody>
-   </table>
-
-
 </div>   
