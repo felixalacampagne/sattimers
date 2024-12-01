@@ -1,0 +1,65 @@
+<p>timer-list works!</p>
+<div class="timerlist" *ngIf="timers">
+   <table mat-table [dataSource]="timers" class="mat-elevation-z8">
+
+      <!--- Note that these columns can be defined in any order.
+            The actual rendered columns are set as a property on the row definition" -->
+    
+      <ng-container matColumnDef="programme">
+        <th mat-header-cell *matHeaderCellDef>Programme</th>
+        <td mat-cell *matCellDef="let t">{{t.name}}</td>
+      </ng-container>
+      <ng-container matColumnDef="channel">
+         <th mat-header-cell *matHeaderCellDef>Channel</th>
+         <td mat-cell *matCellDef="let t"> {{t.servicename}} </td>
+       </ng-container>
+       <ng-container matColumnDef="repeated">
+         <th mat-header-cell *matHeaderCellDef>Repeated</th>
+         <td mat-cell *matCellDef="let t">{{t.repeated}}</td>
+       </ng-container>
+       <ng-container matColumnDef="duration">
+         <th mat-header-cell *matHeaderCellDef>Duration</th>
+         <td mat-cell *matCellDef="let t">{{t.end - t.begin}}</td>
+       </ng-container>
+       <ng-container matColumnDef="start">
+         <th mat-header-cell *matHeaderCellDef>Start</th>
+         <td mat-cell *matCellDef="let t">{{t.begin}}</td>
+       </ng-container>
+       <ng-container matColumnDef="end">
+         <th mat-header-cell *matHeaderCellDef>End</th>
+         <td mat-cell *matCellDef="let t">{{t.end}}</td>
+       </ng-container>
+       <ng-container matColumnDef="options">
+         <th mat-header-cell *matHeaderCellDef>Options</th>
+         <td mat-cell *matCellDef="let t">
+            <button class="" (click)="edittimer(t)" title="Edit"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+         </td>
+       </ng-container>
+   
+       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      
+   </table>
+
+
+   <table class="table table-striped table-sm">
+   <thead class="thead-inverse">
+      <TR class='rowhead'><TH>Programme</TH><TH>Channel</TH><TH>Repeated</TH><TH>Duration</TH><TH>Start</TH><TH>End</TH><TH>Options</TH><TR>
+   </thead>
+   <tbody>
+   <tr *ngFor="let t of timers">
+   <td>{{t.name}}</td>
+   <td>{{t.servicename}}</td>
+   <td>{{t.repeated}}</td>
+   <td>{{t.end - t.begin}}</td>
+   <td>{{t.begin}}</td>
+   <td>{{t.end}}</td>
+   <td>
+   <button class="" (click)="edittimer(t)" title="Edit"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+   </td>
+   </tr>
+   </tbody>
+   </table>
+
+
+</div>   

@@ -2,6 +2,30 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.2.
 
+01 Dec 2024 Having realised that the new pages will have to be served from the SR servers I needed a
+way to test locally using static pages before copying everything to the SR boxes. You guessed it, the continuous
+improvers have been at it again and with Angular 19 the 'src/assets' folder which contains the static test data
+is completely ignored. No clue why, no clue as to even look to find out what they have broken. 
+So once gain the continuous improvers have wasted hours of my valuable time due to their pointless changes.
+I eventually got the static test data to load by putting the assets folder into a 'public' folder
+which was created when I initialized the project using the command I found via google (of course there is
+nothing in the Angular docs about how to setup a new application using the tools)
+
+30 Nov 2024 Had the stupid idea to convert the very old timer listing and edit pages used to program
+recordings my Enigma2 based satellite receivers (SR) to Angular. The original pages use 'Ajax' to obtain a list
+of recordings, known as 'timers', in JSON format. I remember nothing of 'Ajax' and the pages are 
+very awkward to use on a mobile phone and I've just installed a new satellite receiver which required
+tweaks to the code so I thought now would be a good time to update the pages. Big laugh! Once again
+Angular has changed and nothing is as it was last time I setup a new project (about 3 months ago).
+Nonetheless I managed to get the framework in place in a couple of hours - so much random boilerplate!
+
+The idea was to have a single, centrally located, set of pages which would query the receivers to get the
+timer information via the web service api. BAD IDEA! Forking CORS prevents that from working - no way to
+make a query from a page at server X to a web api at server Y unless something is changed on server Y.
+I have no way to modify the OpenWebIf server code to force it to provide the CORS shirt necessary - so
+once again normal people just truing to do perfectly legitimate things are shafted in the interest 
+of so called 'security'.
+
 ## Development server
 
 To start a local development server, run:

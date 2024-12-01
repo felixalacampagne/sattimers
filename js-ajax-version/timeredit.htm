@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<HTML>
+<head>
+<meta http-equiv="x-ua-compatible" content="IE=7">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta content="no-cache" http-equiv="pragma">
+<meta content="0" http-equiv="expires">
+<meta content="no-cache" http-equiv="cache-control">
+
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" type="text/css" href="theme.css" />
+<title>Loading...</title>
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="timercpa.js"></script>
+<script type="text/javascript" src="version.js"></script>
+<script type="text/javascript" src="CalendarPopup.js"></script>
+<SCRIPT LANGUAGE="JavaScript">document.write(getCalendarStyles());</SCRIPT>
+
+<script>
+// 24 Mar 2013 Zeropad when initialising the date drop downs.
+var VERSION = "20210124g";
+function doOnLoad()
+{
+   document.title = "" + hostdevice + " Edit Timer v" + VERSION;
+      
+   initTimerEdit();
+
+   var params = getParams();
+   var sref = "" + params["sRef"];  
+   var dtBegin = new Date();
+   var dtEnd = new Date();
+   dtEnd.setMinutes(dtEnd.getMinutes() + 5);
+   
+   
+   if(sref != "undefined")
+   {
+      // Need to get the timer corrsponding to 
+      // sRef, begin, end
+      sref = unescape(sref);
+      var timer = getTimer(sref,params["begin"], params["end"]);
+      // Fill in the fields with the values from the retrieved timer
+      
+      $('#name').val(timer.name);
+      $('#sref').val(timer.serviceref);
+      
+      // Need to keep the original id info when editing an existing timer
+      $('#stopOld').val(timer.end);
+      $('#startOld').val(timer.begin);
+      $('#refOld').val(timer.serviceref);
+
+      
+      dtBegin = new Date(timer.begin * 1000);
+      dtEnd = new Date(timer.end * 1000);
+
+      $('#message').html("" + timer.name + ":" + timer.description + ":" + timer.serviceref + " Begin:" + (dtBegin) + " Year: " + dtBegin.getFullYear() + " End:" + (dtEnd));
+
+      var flags=timer.repeated;
+      for (var i=0; i<7; i++) {
+         $('#day'+i).attr('checked', ((flags & 1)==1));
+         flags >>= 1;
+      }
+      
+   }
+      
+      var mins5;
+      var y = dtBegin.getFullYear();
+
+      $('#syear').val(y);
+      $('#smonth').val(zeropad(dtBegin.getMonth() +1, 2));
+      $('#sday').val(zeropad(dtBegin.getDate(),2));
+      $('#shour').val(zeropad(dtBegin.getHours(),2));
+      
+      mins5 = (dtBegin.getMinutes() / 5) * 5;
+      
+      $('#smin').val(zeropad(mins5,2));
+
+      y = dtEnd.getFullYear();
+      $('#eyear').val(y);
+      $('#emonth').val(zeropad(dtEnd.getMonth() +1,2));
+      $('#eday').val(zeropad(dtEnd.getDate(),2));
+      $('#ehour').val(zeropad(dtEnd.getHours(),2));
+      mins5 = (dtEnd.getMinutes() / 5) * 5;
+      $('#emin').val(zeropad(mins5,2));
+     dodateString();
+}
+
+// serviceref - should be unescaped
+// begin and end - use the owi format (ie. seconds)
+function getTimer(serviceref, begin, end) {
+var timerMain; // filled in by the callback, and the returned value seems to have the values OK
+
+
+   $.ajax({
+      async: false,
+      url: "/api/timerlist" + nocache("?"),
+      success: function(data) 
+      {
+         // timers = $.parseJSON(data);
+         timers = data;
+         if (timers.result) 
+         {
+            for (var id in timers.timers) 
+            {
+               timer = timers.timers[id];
+               if (timer.serviceref == serviceref &&
+                  Math.round(timer.begin) == Math.round(begin) &&
+                  Math.round(timer.end) == Math.round(end)) 
+               {
+                     timerMain = timer;
+                     break;
+               }
+            }
+         }
+      }
+   });
+   
+   return timerMain;
+}
+
+
+
+function initTimerEdit() 
+{
+   var yearmin = getMinYear();  
+   // For some reason the End fields do not format correctly unless selects contain
+   // an "option" with a similar sized value. The Start fields format OK. Maybe something with
+   // the day name or the calendar image - who knows...
+   // So the dummy values need to be removed before populating with the correct values.
+   
+   $('#smin').find('option').remove().end();
+   $('#emin').find('option').remove().end();
+   for(var i=0; i<60;i+=5)
+   {
+      var ipad = zeropad(i,2);
+      $('#smin').append($("<option></option>").text(ipad));
+      $('#emin').append($("<option></option>").text(ipad));
+   }
+
+   $('#shour').find('option').remove().end();
+   $('#ehour').find('option').remove().end();
+   for(var i=0; i<24;i++)
+   {
+      var ipad = zeropad(i,2);
+      $('#shour').append($("<option></option>").text(ipad));
+      $('#ehour').append($("<option></option>").text(ipad));
+   }
+
+   $('sday').find('option').remove().end();
+   $('#eday').find('option').remove().end();
+   for(var i=1; i<32;i++)
+   {
+      var ipad = zeropad(i,2);
+      $('#sday').append($("<option></option>").text(ipad));
+      $('#eday').append($("<option></option>").text(ipad));
+   }
+
+   $('#smonth').find('option').remove().end();
+   $('#emonth').find('option').remove().end();
+   for(var i=1; i<13;i++)
+   {
+      var ipad = zeropad(i,2);
+      $('#smonth').append($("<option></option>").text(ipad));
+      $('#emonth').append($("<option></option>").text(ipad));
+   }
+   
+   $('#syear').find('option').remove().end();
+   $('#eyear').find('option').remove().end();
+   for(var i=yearmin; i<yearmin+5;i++)
+   {
+      var ipad = i;
+      $('#syear').append($("<option></option>").text(ipad));
+      $('#eyear').append($("<option></option>").text(ipad));
+   }
+
+
+   
+   var bouquet = "Favourites (TV)";
+   $.ajax({
+      async: false,
+      url: "/api/getallservices",
+      success: function(data) 
+      {
+         // services = $.parseJSON(data);
+         services = data;
+         if (services.result) 
+         {
+            $('#sref')
+               .find('option')
+               .remove()
+               .end();
+               
+            for (var id in services.services) 
+            {
+               service = services.services[id];
+               if(service.servicename == bouquet)
+               {
+                  for (var id2 in service.subservices) 
+                  {
+                     subservice = service.subservices[id2];
+                     $('#sref')
+                        .append($("<option></option>")
+                        .attr("value", subservice.servicereference)
+                        .text(subservice.servicename));
+                  }
+               }
+            }
+         }  
+      }
+   });
+}
+
+function doSubmit()
+{
+var rptd = 0;
+   for (var i=0; i<7; i++) 
+   {
+      if( $('#day'+i).attr("checked"))
+      {
+        // Value for a Sunday repeats displays as 064 suggesting the values are being string
+         // concatenated instead of numerically added - so force the values to be treated as numeric.
+         // Results in "64" fort Sundaym, but doesn't fix the premature wrap around to the following week
+         // from happening when the start time is edited.
+         rptd = Number(rptd) + Number($('#day'+i).val());
+      }
+   }
+   $('#repeated').val(rptd);
+   return checkChannelValue();
+}
+
+</script>
+
+</head>
+
+<body onload="doOnLoad(); return true">
+<form method="GET" name="addtimer" action="timerlist.htm" value= "addtimer" onsubmit="return doSubmit();">
+
+<table border=0 cellpadding=0 cellspacing=10>
+   <tr>
+      <td>Action:</td>
+      <td>
+         <select name="action" size="1">
+         <option value="record">Record</option>
+         </select>
+      </td>
+   </tr>
+   <tr>
+      <td>
+         &nbsp;
+      </td>
+      <td>
+         Note: For recurring events start/end day/month are not required.
+      </td>
+   </tr>
+   <tr>
+      <td>Start:</td>
+      <td><select id="syear" name="syear" size="1" onchange="javascript:changeYear('s');">
+         </select>.
+      <select id="smonth" name="smonth" size="1" onchange="javascript:changeMonth('s');">
+         </select>.
+      <select id="sday" name="sday" size="1" onchange="javascript:changeDay('s');">
+         </select>
+      &nbsp;-&nbsp;
+      <select id="shour" name="shour" size="1" onchange="javascript:changeHour('s');">
+         </select>:
+      <select id="smin" name="smin" size="1" onchange="javascript:changeMin('s');"></select> <span name="dayname" id="dayname">&nbsp;</span> <A id="startdate" onclick="setStartDate('startdate'); return false;" href="#"><img src="calendar.png" border="0" align="middle"></A>
+      </td>
+   </tr><tr>
+      <td>End:</td>
+   <td>
+      <select id="eyear" name="eyear" size="1" onchange="javascript:changeYear('e');"><option>XXXX</option></select>.
+      <select id="emonth" name="emonth" size="1" onchange="javascript:changeMonth('e');"><option>XX</option></select>.
+      <select id="eday" name="eday" size="1" onchange="javascript:changeDay('e');"><option>XX</option></select>
+      &nbsp;-&nbsp;
+      <select id="ehour" name="ehour" size="1" onchange="javascript:changeHour('e');"><option>XX</option></select>:
+      <select id="emin" name="emin" size="1" onchange="javascript:changeMin('e');"><option>XX</option></select>
+      </td>
+   </tr>
+   <tr>
+      <td>&nbsp;</td>
+      <td>Note: For one-time events the "days" field doesn't have to be specified.</td>
+   </tr>
+   <tr>
+      <td>Days:</td>
+      <td>
+      <input type="checkbox" id="day0" name="mo" value="1">&nbsp;Mo&nbsp;&nbsp;
+<input type="checkbox" id="day1" name="tu" value="2">&nbsp;Tu&nbsp;&nbsp;<input type="checkbox" id="day2" name="we" value="4">&nbsp;We&nbsp;&nbsp;<input type="checkbox" id="day3" name="th" value="8">&nbsp;Th&nbsp;&nbsp;<input type="checkbox" id="day4" name="fr" value="16">&nbsp;Fr&nbsp;&nbsp;<input type="checkbox" id="day5" name="sa" value="32">&nbsp;Sa&nbsp;&nbsp;<input type="checkbox" id="day6" name="su" value="64">&nbsp;Su&nbsp;&nbsp;<input type="checkbox" name="mf" value="31">&nbsp;Mo-Fr&nbsp;&nbsp;
+<input type="checkbox" id="EVERYDAY" name="EVERYDAY" value="EVERYDAY" onclick="allCheckBoxes(this.form);" />&nbsp;Every Day
+<input type="hidden" id="repeated" NAME="repeated" value=0>
+      </td>
+   </tr>
+   <tr>
+      <td>Channel:</td>
+      <td>
+      <select id="sref" name="sref">
+         <option value="0">Nothing</option>
+      </select>
+      </td>
+   </tr>
+   <tr>
+      <td>Name:</td>
+      <td><input id="name" name="name" type="text" size="100" maxlength="100" style="color: #000000;"></td>
+   </tr>
+   <tr>
+      <td>After event do:</td>
+      <td>
+         <select name="after_event" size="1">
+         <option selected value="nothing">Nothing</option><option value="deepstandby">Deep-Standby/Shutdown</option>
+         </select>
+      </td>
+   </tr>
+   <tr>
+      <td>&nbsp;</td>
+      <td><input type="submit" name="send" value="Add/Save" style="width: 100px; height: 22px; color: #000000;">
+      <br><input type="reset" name="clear" value="Clear" style="width: 100px; height: 22px; color: #000000;"></td>
+   </tr>
+</table>
+<input id="refOld" type="hidden" name="refOld" value="">
+<input id="startOld" type="hidden" name="startOld" value="">
+<input id="stopOld" type="hidden" name="stopOld" value="">
+</form>
+<div id="message"></div>
+<DIV id="caldiv" style="VISIBILITY: hidden; POSITION: absolute; BACKGROUND-COLOR: white; layer-background-color: white"></DIV>
+<p>
+<center><a href="timerlist.htm">List Timers</a></center>
+<p>
+</body>

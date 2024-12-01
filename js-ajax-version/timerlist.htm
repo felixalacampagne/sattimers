@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<HTML>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" />
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="timercpa.js"></script>
+<script type="text/javascript" src="version.js"></script>
+
+
+</head>
+<body onload="doOnLoad(); return true">
+<script type="text/javascript">
+
+var VERSION = "20230107a"
+   
+$(document).ready(function() {
+   // document.title = "Edit Timer (" + hostdevice + ") v20210124f";
+   document.title = "" + hostdevice + " List Timers  v" + VERSION;
+});
+</script>
+<script type="text/javascript">
+function doOnLoad()
+{
+   addTimer();
+   loadTimerList();
+   displayTimer();
+}
+
+// This file is located in: \\VUULTIMO\Root\usr\lib\enigma2\python\Plugins\Extensions\OpenWebif\public\static\cpa
+// 07-Jan-2023 Fix for timeedit not being able to update timers-it still uses the component times
+// 29-Dec-2022 While in the UK for Xmas I set a number of programmes to record only to find they were all off by an 
+//             hour. This is the first time I've hit this problem after 10+ years of use. Probably this was the first
+//             time I was able to set the the timers from the iPhone which automatically sets its timezone to UK,
+//             instead of from the laptop which does not change the timezone (and I probably never bother to change it
+//             manually). Unfortunately it looks like fixing the issue will be very difficult as the Javascript 
+//             Date functionality is not aware of timezones like 'CET' or 'Europe/Brussels' so is unable to take 
+//             daylight savings into account.
+//             
+//             It seems that Date converts any date/time it is given into a UTC based value assuming the 
+//             local devices timezone. The program time info is provided by the EPG link as separate components
+//             which are the 'clock' time of the program for the set top box, which is in Belgium. The add timer 
+//             link uses a Unix timestamp number for the times. The Unix timestamp is a UTC value which is converted 
+//             by the STB to its timezone, ie. CET. The Unix timestamp to send to the
+//             STB is created from the EPG link value by this page which is executed on the device whose timezone may depend
+//             on its physical location, eg. iPhone. Consequently the program times are wrong as the Unix timestamp 
+//             is calculated by removing x hours and then decoded into the real program time by adding y hours.
+//             
+//             Interpreting and displaying the times in CET regardless of the device timezone is not possible, well, not
+//             practical. So will have to accept that the list displays the times in the current device timezone.
+//             To ensure consistency times will be communicated from the EPG using the Unix style timestamp which is
+//             UTC by definition. This value is then sent directly to the STB without any conversion (it is
+//             rounded to 5 minutes). The time component parameters can be removed from the EPG URL.
+//
+//             I noticed another bug with timers spanning Sunday midnight, or maybe it's something to do with the
+//             year change. Repeated timers for the 1-Jan would appear as due to record on 8-Jan. Can't reproduce now
+//             I'm back in CET timezone so maybe its related to the changing times due to the timezone mismatch.
+//
+//             Hopefully fixed another fun bug never seen before which happens when times are not multiple of 5 minutes 
+//             - when they are edited the time part gets set to 00 which can cause weird problems when the end 
+//             becomes before the start including changing the day - at least for times from the EPG. Timers set via the
+//             STB UI might still cause the problem.
+//          
+// 01-May-2015 When I use timeredit to change the start time of a repeated show which spans Sunday midnight (Fringe)
+//             to an earlier time the start date gets moved forward by a week. This appears to happen as a result of
+//             the openwebif timerchange code. As a workaround my "update" code now attempts to delete a timer
+//             which has the "xxxOld" parameters set, before performing a timerchange. This appears to avoid the
+//             fix the problem for now... need to keep an eye open for unintended consequences of doing the delete...
+// 30-Nov-2012 Seems to work most of time. There seems to be a problem when a link from the epg
+//             has times that don't match an existing timer but which do overlap in some way. The update
+//             fails with a "not found" message. The add reports success but the new timer doesn't appear.
+//
+//             This version of the file is attempting to perform the ajax call asynchronously, which is
+//             the normal way - tricky to get the update then add flow to work. At moment it parses the timer
+//             info twice, this will need to change..... First let's see how passing function references etc.
+//             works.
+
+var gDaysShort = new Array("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");  
+var gMonths = new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+var gAddedTimerID="";
+
+function getTimerFromParams()
+{
+   var timer = new Object();
+   var params = getParams();
+   
+   var sref = "" + params["sref"];
+   if(sref == "undefined")
+   {
+      // Not sure how not equals works
+   }
+   else
+   {
+      
+      var repeated="" + params["repeated"];
+      if(repeated == "undefined")
+      {
+         repeated = 0;
+      }
+      
+      var name = params["name"];
+      var sunx;
+      var eunx;
+	  
+      if((params["sunx"] !== undefined) &&(params["eunx"] !== undefined) )
+      {
+         // This is the way the EPG sends the start/stop/times
+         console.log("getTimerFromParams: Using unix date values");
+         sunx = Number(params["sunx"]);
+         eunx = Number(params["eunx"]);
+      }
+      else
+      {
+         // This is the way the timeredit form sends the start/stop times
+         // Date will be interpreted using the local device time zone
+         console.log("getTimerFromParams: Using component date values");
+         sunx = new Date(params["syear"],params["smonth"]-1,params["sday"],params["shour"],params["smin"],0).getTime();
+         eunx = new Date(params["eyear"],params["emonth"]-1,params["eday"],params["ehour"],params["emin"],0).getTime();
+      }
+      
+      timer.sunx = sunx; // The original, unrounded value
+      timer.eunx = eunx; // The original, unrounded value
+
+      // Times must be a multiple of 5 otherwise problems occur in the edit screen due to the intervals of the 
+      // minute dropdown list. Applying the rounding to the millisecond value allows the end time to be easily rounded UP
+      var round = 5 * 60 * 1000;
+      
+      // Round start DOWN
+      sunx = Math.floor(sunx / round) * round;
+      
+      // Round end UP
+      eunx = Math.floor( (eunx + round - 1) / round) * round;
+      
+      var begin = new Date(sunx);
+      var end = new Date(eunx);
+            
+      timer.sref = deEscape(sref);
+      timer.repeated = repeated;
+      timer.name = deEscape(name);
+      timer.begin = begin;
+      timer.end = end;
+      // These are provided by the timeredit form. They are not provided by the EPG links
+      var refold = "" + params["refOld"];
+      timer.refold = deEscape(refold);   // This should be "undefined" (text) if refOld is not present.
+      
+      timer.startold = params["startOld"];
+      timer.stopold = params["stopOld"];
+   }     
+   return timer;
+}
+
+function displayTimer()
+{
+   
+   var timer = getTimerFromParams();
+   var sref = "" + timer.sref;
+   if(sref == 'undefined')
+   {
+      return;
+   }
+
+   // unescape doesn't work with the + is a space syntax
+   var html = "Timer: " + timer.name + "<BR>";
+   html += "Start:     " + formatDate(timer.begin) + " (" + timer.begin.getTime() + ")" + "<BR>";
+   html += "End:       " + formatDate(timer.end) + " (" + timer.end.getTime() + ")" + "<BR>";
+   html += "Duration:  " + ((timer.end.getTime()-timer.begin.getTime())/1000)/60 + "<BR>";
+   html += "Repeated:  " + timer.repeated + "<BR>";
+   html += "EPG Start: " + timer.sunx + "<BR>";
+   html += "EPG End:   " + timer.eunx + "<BR>";
+   html += "Service ref: " + timer.sref + "<BR>";
+   html += "Page ver   : " + VERSION + "<P>";
+   
+   //alert(html);
+   $("#add_timer").html(html);
+}
+
+
+function doAddTimer()
+{
+   addTimer();
+   loadTimerList();
+   
+}
+
+function addTimer(updateFailed)
+{
+   var timer = getTimerFromParams();
+   //for(x in params)
+   //{
+   // alert(x + "=" + params[x]);
+   //}
+   
+   var sref = "" + timer.sref;
+   if(sref == "undefined")
+   {
+   return;
+   }
+   
+   var owiBegin = timer.begin.getTime()/1000;;
+   var owiEnd = timer.end.getTime()/1000;
+   
+   // NB Seems the values are still URL escaped, so they don't need to be done again
+   var owiparams = "sRef=" + escape(sref);
+   owiparams+= "&begin=" + owiBegin;
+   owiparams+= "&end=" + owiEnd;
+   owiparams+= "&name=" + escape(timer.name);
+   //owiparams+= "&dirname=" + dirname;
+   owiparams+= "&repeated=" + timer.repeated;
+   
+   // TODO Might need to use "timerchange" instead so repeated timers can be updated with new titles
+   // Needs the parameters "channelOld", "beginOld", "endOld", presumable set to the new values...
+   // what happens if the old ones don't exist, ie. prog is not on at the same time this week, 
+   // I don't know. Should use the old parameters in the URL if present as the edit form should
+   // supply them. If not present then use the current values
+   if( timer.refold == "undefined" )
+   {
+      owiparams+= "&channelOld=" + escape(sref);
+      owiparams+= "&beginOld=" + owiBegin;
+      owiparams+= "&endOld=" + owiEnd;
+   }
+   else
+   {
+      owiparams+= "&channelOld=" + escape(timer.refold);
+      
+      // Moving start earlier seems results in the start date being set an extra week in advance
+      // does changing startold to be equal to start prevent this??
+      // Sort of: it results in a new timer being added instead of the existing timer being replaced.
+      // The new timer is added at the correct time so I think the issue is more due to the openwebif
+      // timerchange code than with my stuff.
+      // Could maybe resort to doing a delete then an add, but that is going to be a mess with the
+      // callbacks... well actually it turns out not to be too bad and it seems to fix the 
+      // "Fringe" problem without causing a problem when adding a brand new timer from timeredit.
+      owiparams+= "&beginOld=" + timer.startold;
+      owiparams+= "&endOld=" + timer.stopold;
+   }
+   
+   owiparams+= "&afterevent=0";
+   
+   var owiurl;
+   var cb;
+   if(updateFailed == true)
+   {
+      owiurl = "/api/timeradd?" + owiparams + nocache("&");
+      cb = cbAddTimer;
+   }
+   else
+   {
+      cpawebapi_execute("/api/timerdelete?sRef=" + escape(sref) 
+                         + "&begin=" + timer.startold 
+                         + "&end=" + timer.stopold 
+                         + nocache("&")); 
+      
+      owiurl = "/api/timerchange?" + owiparams + nocache("&");
+      cb = cbUpdateTimer;
+   }
+   
+   var ok = false;
+   gAddedTimerID = "'" + timer.sref + "', '" + owiBegin + "', '" + owiEnd + "'";
+   $("#add_timer_url").html(owiurl);
+   cpawebapi_execute(owiurl, cb);
+   
+   
+}
+
+// Callback for an update timer (timerchange)
+function cbUpdateTimer(response) 
+{
+   if(response.result == true)
+  {
+   $("#add_timer_reponse").html(response.message);
+  }
+  else
+  {
+   $("#add_timer_reponse").html("<B>FAILURE:</B> " + response.result + ": " + response.message);
+   gAddedTimerID = "";
+   addTimer(true);
+  }   
+}
+
+// Callback for an add timer (timeradd)
+function cbAddTimer(response)
+{
+   if(response.result == true)
+  {
+   $("#add_timer_reponse").html(response.message);
+  }
+  else
+  {
+   gAddedTimerID = "";
+      alert("Failed to add or update timer");
+  }   
+}
+
+function cpawebapi_execute(url, cb) 
+{
+
+$.ajax({
+async: false,
+url: url,
+success: function(data) {
+      // var response = $.parseJSON(data);
+      var response = data;
+      if(response.result == true)
+      {
+         $("#add_timer_reponse").html(response.message);
+      }
+      else
+      {
+         $("#add_timer_reponse").html("<B>FAILURE:</B> " + response.result + ": " + response.message);
+      }
+      if(cb)
+      {
+         cb(response);
+      }
+   }
+  });
+}
+
+      
+
+// Strings in the input URL contain spaces escaped as "+". These are not
+// handled by the js unescape function so they need to be manually done.
+// Applies to the timer name and the serviceref
+function deEscape(escaped)
+{
+var descaped = escaped.replace(/\+/g, ' ');
+descaped = unescape(descaped);
+return descaped;
+}
+
+function formatDate(dateObj)
+{
+var dispdate;
+   dispdate = "" + gDaysShort[dateObj.getDay()]; 
+   dispdate += " " + zeropad(dateObj.getDate(),2);
+   dispdate += " " + gMonths[dateObj.getMonth()];
+   dispdate += " " + dateObj.getFullYear();
+   // TODO find out whether getHours is local time or UTC
+   
+   dispdate += " " + zeropad(dateObj.getHours(),2);
+   dispdate += ":" + zeropad(dateObj.getMinutes(),2); 
+   
+   
+   return dispdate; //date.toLocaleString(); 
+}
+      
+// owiDate - date in OpenWebIF format, ie. seconds since the epoch instead of milliseconds
+function formatTimerDate(owiDate){
+   
+   var epochtime = Math.round(owiDate) * 1000;
+   var date = new Date(epochtime);
+   return formatDate(date);
+}
+      
+function loadTimerList()
+{
+console.log("loadTimerList: start");
+   //$("#content_container").load('/ajax/timers');
+$.ajax({
+async: false,
+url: "/api/timerlist" + nocache("?"),
+success: function(data) {
+   console.log("loadTimerList: success");
+   // on sf8008 'data' is already the timers object. This is surely something on the
+   // browser side which is very confusing UNLESS the server response type is telling the
+   // browser it is JSON and for the older receivers it is TEXT??
+   // timers = $.parseJSON(data);
+   timers = data; 
+   console.log("loadTimerList: data: " + data);
+   console.log("loadTimerList: timers.result: " + timers.result);
+   if (timers.result) 
+   {
+   
+      var html ="";
+      var rownum=0;
+      var rowclass = "rownormal";;
+      for (var id in timers.timers) 
+      {
+         var timer = timers.timers[id];
+         var row;
+
+      //for(x in timer)
+      //{
+      // alert(x + "=" + timer[x]);
+      //}
+
+         var timerid =  "'" + deEscape(timer.serviceref) + "', '" + timer.begin + "', '" + timer.end + "'";
+
+         if(gAddedTimerID == timerid)
+         {
+            rowclass = "rowadded";
+         }
+         else if(timer.state==2)
+         {  // Recording
+            rowclass = "rowinprogress";
+         }
+            else
+         {
+            rowclass = "rownormal";
+         }
+         row = "<TR class='" + rowclass +  "'>";
+         row += "<TD>" + timer.name + "</TD>";
+         row +=   "<TD>" + timer.servicename + "</TD>";
+         //row += "<TD>" + timer.serviceref + "</TD>";
+         var flags=timer.repeated;
+         var repeateddays="";
+         
+         for (var i=0; i<8; i++) 
+         {
+            if(flags & (1<<i))
+            {
+               repeateddays += gDaysShort[(i+1) % 7];
+            }
+         }
+         row +=   "<TD>" + repeateddays + "</TD>";
+         row +=   "<TD>" + ((timer.end - timer.begin)/60) + "</TD>";
+         row +=   "<TD>" + formatTimerDate(timer.begin) + "</TD>";
+         row +=   "<TD>" + formatTimerDate(timer.end) + "</TD>";
+         row +=  "<TD>";
+         row +=      "<a onclick=\"editTimer(" + timerid + ");\" href='#'><img title='Edit Timer' border='0' src='ico_edit.png'></a>";
+         row +=      "<a onclick=\"deleteTimer(" + timerid + ", '" + timer.name + "');\" href=\"#\"><img title=\"Delete Timer\" border=\"0\" src=\"ico_delete.png\"></a>";
+         row +=   "</TD>";
+         
+         row += "</TR>";   
+         html += row + "\n";
+      }
+      if(html != ""){
+         var header = "<TR class='rowhead'><TH>Programme</TH><TH>Channel</TH><TH>Repeated</TH><TH>Duration</TH><TH>Start</TH><TH>End</TH><TH>Options</TH><TR>";
+
+         html = "<TABLE>" + header + html + "</TABLE>";
+      }
+      //alert(html);
+      $("#list_content").html(html);
+   }
+}
+}); 
+console.log("loadTimerList: finish");        
+}
+
+function loadBouquet(bouquet){
+   $.ajax({
+      async: false,
+      url: "/api/getallservices" + nocache("?"),
+      success: function(data) {
+         //services = $.parseJSON(data);
+         services = data;
+         if (services.result) {
+            for (var id in services.services) {
+               service = services.services[id];
+               if(service.servicename == bouquet)
+               {
+               $('#list_content').append("-------" + id + "=" + service.servicename + "<BR>");
+               // <dbent><dbref>1:0:1:189D:7FD:2:11A0000:0:0:0:</dbref><dbname>BBC 1 London</dbname></dbent>
+               for (var id2 in service.subservices) {
+                  subservice = service.subservices[id2];
+                  var safename = subservice.servicename;
+                  safename = safename.replace(/\*/g, "STAR");
+                  $('#list_content').append("&lt;dbent>&lt;dbref>" + subservice.servicereference + "&lt;/dbref>&lt;dbname>" + safename + "&lt;/dbname>&lt;/dbent><BR>");
+               }
+            }
+            }
+         }
+      }
+   });   
+}
+
+function editTimer(sRef, begin, end) {
+      window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self"); 
+}
+
+function deleteTimer(sRef, begin, end, name) {
+   var answer = confirm("Really delete timer \n'" + name + "'?");
+   if (answer == true) 
+   {
+      cpawebapi_execute("/api/timerdelete?sRef=" + escape(sRef) 
+                           + "&begin=" + begin 
+                           + "&end=" + end 
+                           + nocache("&"),
+                           loadTimerListCB); 
+      //loadTimerList(); 
+   }
+}
+function loadTimerListCB(response)
+{
+   loadTimerList();   
+}
+
+
+</script>
+<div id="list_content"></div>
+<P>
+<div id="add_timer_reponse"></div>
+<P>
+<ul>
+<!-- <li><a href='#' onclick="doAddTimer(); return false;">Add Timer</a></li>  -->
+<li><a href='#' onclick="loadTimerList(); return false;">Reload Timers List</a></li>
+<li><a href='timeredit.htm'>Add Timer</a></li>
+<li><a href='#' onclick="loadBouquet('Favourites (TV)'); return false;">Load Favourites for TVGuide.xsl</a></li>
+</ul>
+<P>
+<div id="add_timer"></div>
+<div id="add_timer_url"></div>
+
+
+</body>
+</html>
