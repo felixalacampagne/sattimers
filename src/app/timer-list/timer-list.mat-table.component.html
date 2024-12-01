@@ -1,0 +1,48 @@
+<p>timer-list works!</p>
+<div class="timerlist" *ngIf="timers">
+   <mat-table [dataSource]="timers" class="mat-elevation-z8">
+
+      <!--- Note that these columns can be defined in any order.
+            The actual rendered columns are set as a property on the row definition" -->
+    
+      <ng-container matColumnDef="programme">
+        <mat-header-cell *matHeaderCellDef>Programme</mat-header-cell>
+        <mat-cell *matCellDef="let t">{{t.name}}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="channel">
+         <mat-header-cell *matHeaderCellDef>Channel</mat-header-cell>
+         <mat-cell *matCellDef="let t"> {{t.servicename}} </mat-cell>
+       </ng-container>
+       <ng-container matColumnDef="repeated">
+         <mat-header-cell *matHeaderCellDef>Repeated</mat-header-cell>
+         <mat-cell *matCellDef="let t">{{t.repeated}}</mat-cell>
+       </ng-container>
+       <ng-container matColumnDef="duration">
+         <mat-header-cell *matHeaderCellDef>Duration</mat-header-cell>
+         <mat-cell *matCellDef="let t">{{t.end - t.begin}}</mat-cell>
+       </ng-container>
+       <ng-container matColumnDef="start">
+         <mat-header-cell *matHeaderCellDef>Start</mat-header-cell>
+         <mat-cell *matCellDef="let t">{{utils.formatTimerDate(t.begin)}}</mat-cell>
+       </ng-container>
+       <ng-container matColumnDef="end">
+         <mat-header-cell *matHeaderCellDef>End</mat-header-cell>
+         <mat-cell *matCellDef="let t">{{utils.formatTimerDate(t.end)}}</mat-cell>
+       </ng-container>
+       <ng-container matColumnDef="options">
+         <mat-header-cell *matHeaderCellDef>Options</mat-header-cell>
+         <mat-cell class='optcell' *matCellDef="let t">
+            <button class="" (click)="edittimer(t)" title="Edit">
+               <mat-icon aria-hidden="false" aria-label="Edit timer" fontIcon="edit"></mat-icon>
+            </button>
+            <button class="" (click)="deletetimer(t)" title="Cancel">
+               <mat-icon aria-hidden="false" aria-label="Cancel timer" fontIcon="cancel"></mat-icon>
+            </button>            
+         </mat-cell>
+       </ng-container>
+   
+       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+       <mat-row class="row" *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      
+   </mat-table>
+</div>   
