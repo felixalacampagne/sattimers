@@ -19,7 +19,11 @@ gMonths  : string [] = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","O
 public formatTimerDate(owiDate : number){
    
    let epochtime : number = Math.round(owiDate) * 1000;
-   let date : Date = new Date(epochtime);
+
+   // This does not appear to be giving a Date which causes formatDate to fail wtih
+   // the claim that getDay() is not a function - obviously it is a forking function.
+   // THe log output of the date is a number - should be a formatted date string.
+   let date : Date = new Date(epochtime); 
    return this.formatDate(date);
 }
 public formatDate(d: Date)
