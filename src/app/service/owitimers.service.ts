@@ -43,6 +43,13 @@ export class OWITimersService
   {
      let url : string;
      url = this.apiurl + this.timerlistsvc;
+     // this fails when the client pages are not served from the sat box: CORS shirt designed to prevent 
+     // normal users from doing anything useful with the code.
+     // The sat box server does actually set the allowed origin to be anything ('*') but apparently
+     // the browser deliberatly rejects this as a valid response, even though it is a valid response.
+     // The only suggestion of a workaround for this might be to add '{ withCredentials: false }' to the get, after the
+     // url. All other so-called solutions require changes to the server, which obviously can't be done when trying
+     // to access a 'public' web api.
      return this.http.get(url).pipe( map((res:any) => res));
   }  
 }
