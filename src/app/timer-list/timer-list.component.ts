@@ -1,3 +1,4 @@
+// src/app/timer-list/timer-list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { OWITimersService } from '../service/owitimers.service';
 import { Timer } from '../model/timer.model';
@@ -15,7 +16,7 @@ import { TimerUtilsService } from '../service/timer-utils.service';
   styleUrl: './timer-list.component.scss'
 })
 export class TimerListComponent implements OnInit {
-displayedColumns: string[] = ['programme', 'channel', 'repeated', 'duration', 'start', 'end', 'options'];
+displayedColumns: string[] = ['programme', 'channel', 'repeated', 'duration', 'start', 'end', 'sdate', 'options'];
 
 timers : Timer[] | undefined;   
 
@@ -72,4 +73,5 @@ timers : Timer[] | undefined;
    {
       throw new Error('Method not implemented.');
    }   
+   
 }
