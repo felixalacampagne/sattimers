@@ -5,8 +5,24 @@
    margin-bottom: 0px;
    padding-top:0px;
    padding-bottom:0px;
- }
- .optcell
- {
+}
+
+td.nowrap
+{
    white-space: nowrap
+}
+
+.rowinprogress
+
+{
+   background-color: rgba(255, 0, 0, 0.267) !important;
+}
+
+.mat-mdc-row:nth-child(even) {
+   background-color: rgba(250, 197, 116, 0.125);
+ }
+ 
+ .mat-mdc-row:nth-child(odd) {
+   background-color: rgba(250, 197, 116, 0.288);
+   
  }
