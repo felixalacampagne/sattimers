@@ -25,7 +25,7 @@ public formatTimerDate(owiDate : number){
    // the claim that getDay() is not a function - obviously it is a forking function.
    // THe log output of the date is a number - should be a formatted date string.
    let date : Date = new Date(epochtime); 
-   console.log("formatTimerDate: owiDate:" + owiDate + " epochtime:" + epochtime + " date:" + date);
+   //console.log("formatTimerDate: owiDate:" + owiDate + " epochtime:" + epochtime + " date:" + date);
    return this.formatDate(date);
 }
 
@@ -36,13 +36,13 @@ public formatTimerTime(owiDate : number){
    // the claim that getDay() is not a function - obviously it is a forking function.
    // THe log output of the date is a number - should be a formatted date string.
    let date : Date = new Date(epochtime); 
-   console.log("formatTimerTime: owiDate:" + owiDate + " epochtime:" + epochtime + " date:" + date);
+   //console.log("formatTimerTime: owiDate:" + owiDate + " epochtime:" + epochtime + " date:" + date);
    return this.formatTime(date);
 }
 
 public formatDate(d: Date)
 {
-   console.log("formatDate: d:" + d);
+   //console.log("formatDate: d:" + d);
    let dispdate : string = "";
    let idx : number;
    // browser claims dateObj.getDay is not a function
