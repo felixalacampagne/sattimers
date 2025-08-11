@@ -1,3 +1,4 @@
+<!-- src/app/timer-list/timer-list.component.html -->
 <div class="timerlist" *ngIf="timers">
    <table mat-table [dataSource]="timers" class="mat-elevation-z8">
 
@@ -8,39 +9,39 @@
         <th mat-header-cell *matHeaderCellDef>Programme</th>
         <td mat-cell *matCellDef="let t">{{t.name}}</td>
       </ng-container>
-      <ng-container matColumnDef="channel">
-         <th mat-header-cell *matHeaderCellDef>Channel</th>
-         <td class="nowrap" mat-cell *matCellDef="let t"> {{t.servicename}} </td>
+      <ng-container matColumnDef="sdate">
+         <th mat-header-cell *matHeaderCellDef>Date</th>
+         <td mat-cell *matCellDef="let t">{{utils.formatTimerDate(t.begin)}}</td>
        </ng-container>
-       <ng-container matColumnDef="repeated">
-         <th mat-header-cell *matHeaderCellDef>Repeated</th>
-         <td mat-cell *matCellDef="let t">{{utils.repeatedDays(t)}}</td>
-       </ng-container>
-       <ng-container matColumnDef="duration">
-         <th mat-header-cell *matHeaderCellDef>Duration</th>
-         <td mat-cell *matCellDef="let t">{{(t.end - t.begin)/60}}</td>
-       </ng-container>
-      <!-- Maybe change to start time, end time, start day/date -->
        <ng-container matColumnDef="start">
          <th mat-header-cell *matHeaderCellDef>Start</th>
          <td mat-cell *matCellDef="let t">{{utils.formatTimerTime(t.begin)}}</td>
        </ng-container>
+      <ng-container matColumnDef="channel">
+         <th mat-header-cell *matHeaderCellDef>Channel</th>
+         <td mat-cell *matCellDef="let t"> {{t.servicename}} </td>
+       </ng-container>
+       <ng-container matColumnDef="repeated">
+         <th mat-header-cell *matHeaderCellDef>Rep</th>
+         <td mat-cell *matCellDef="let t">{{utils.repeatedDays(t)}}</td>
+       </ng-container>
+       <ng-container matColumnDef="duration">
+         <th mat-header-cell *matHeaderCellDef>Dur</th>
+         <td mat-cell  *matCellDef="let t">{{(t.end - t.begin)/60}}</td>
+       </ng-container>
+      <!-- Maybe change to start time, end time, start day/date -->
        <ng-container matColumnDef="end">
          <th mat-header-cell *matHeaderCellDef>End</th>
          <td mat-cell *matCellDef="let t">{{utils.formatTimerTime(t.end)}}</td>
        </ng-container>
-       <ng-container matColumnDef="sdate">
-         <th mat-header-cell *matHeaderCellDef>Date</th>
-         <td mat-cell *matCellDef="let t">{{utils.formatTimerDate(t.begin)}}</td>
-       </ng-container>
        <ng-container matColumnDef="options">
          <th mat-header-cell *matHeaderCellDef>Options</th>
-         <td class="nowrap" mat-cell *matCellDef="let t">
-            <button class="" (click)="edittimer(t)" title="Edit">
-               <mat-icon aria-hidden="false" aria-label="Edit timer" fontIcon="edit"></mat-icon>
+         <td mat-cell *matCellDef="let t">
+            <button mat-icon-button class="small timer-edit" (click)="edittimer(t)" title="Edit">
+               <mat-icon fontSet="material-symbols-rounded">edit</mat-icon>
             </button>
-            <button class="" (click)="deletetimer(t)" title="Cancel">
-               <mat-icon aria-hidden="false" aria-label="Cancel timer" fontIcon="cancel"></mat-icon>
+            <button mat-icon-button class="small timer-cancel" (click)="deletetimer(t)" title="Cancel timer">
+               <mat-icon fontSet="material-symbols-rounded">delete</mat-icon>
             </button>            
          </td>
        </ng-container>
