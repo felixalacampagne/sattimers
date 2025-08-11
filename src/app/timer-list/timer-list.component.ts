@@ -30,11 +30,12 @@ landscapeColumns: string[] = [
    'programme', 'sdate', 'start', 'channel', 'duration', 'repeated', 'end', 'options'
 ];
 portraitColumns: string[] = [
-   'programme', 'sdate', 'start', 'channel'
+   'programme', 'sdate', 'start', 'expand'
 ];
 
 displayedColumns: string[] = this.landscapeColumns;
 timers : Timer[] | undefined;   
+expandedTimer: Timer | null = null;
 landscapeDisplay: boolean = false;
 desktopDisplay: boolean = false;
 
@@ -67,6 +68,7 @@ desktopDisplay: boolean = false;
                               if(! this.desktopDisplay)
                               {
                                  console.log("TimerListComponent.ngOnInit: set portrait columns");
+                                 this.expandedTimer = null;
                                  this.displayedColumns = this.portraitColumns;
                               }
                            }
@@ -77,6 +79,7 @@ desktopDisplay: boolean = false;
                         if(result.matches){
                            this.landscapeDisplay = true;
                            console.log("TimerListComponent.ngOnInit: set landscape columns");
+                           this.expandedTimer = null;
                            this.displayedColumns = this.landscapeColumns; 
                         }
                         });      
@@ -124,5 +127,18 @@ desktopDisplay: boolean = false;
    {
       throw new Error('Method not implemented.');
    }   
+ 
    
-}
+   /** Checks whether an element is expanded. */
+   isExpanded(timer: Timer) {
+      // console.log("isExpanded: " + (this.expandedTimer === timer));
+      return this.expandedTimer === timer;
+   }
+
+   /** Toggles the expanded state of an element. */
+   toggle(timer: Timer) {
+      // console.log("toggle: expandedTimer: " + this.expandedTimer);
+      this.expandedTimer = this.isExpanded(timer) ? null : timer;
+   }
+}   
+
