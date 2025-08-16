@@ -50,8 +50,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "40kB",
+                  "maximumError": "80kB"
                 }
               ],
                "fileReplacements": [
@@ -60,7 +60,15 @@
                      "with": "src/environments/environment.prod.ts"
                   }
                ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+               "optimization": {
+                  "scripts": true,
+                  "styles": {
+                     "minify": true,
+                     "inlineCritical": false
+                  },
+                  "fonts": true
+               }              
             },
             "development": {
               "optimization": false,

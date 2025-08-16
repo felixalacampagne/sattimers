@@ -20,7 +20,10 @@ import { HttpParams } from '@angular/common/http';
             LayoutModule
          ],
   templateUrl: './timer-list.component.html',
-  styleUrl: './timer-list.component.scss'
+  styleUrls: ['../../styles.scss',
+              './timer-list.component.scss'
+              
+  ]
 })
 export class TimerListComponent implements OnInit {
 

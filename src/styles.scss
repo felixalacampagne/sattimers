@@ -1,4 +1,20 @@
+@use '@angular/material' as mat;
+@use 'material-symbols'; // npm install material-symbols 
+
 /* You can add global styles to this file, and also import other style files */
+@import "@fontsource-variable/roboto-flex/wght.css";  // npm install @fontsource-variable/roboto-flex
+
+
+html {
+   color-scheme: light dark;
+   @include mat.theme((
+     typography: 'Roboto Flex Variable',
+   ));
+ }
+
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { 
+   margin: 0; 
+      font-family: 'Roboto Flex Variable', Roboto, 'Open Sans', sans-serif !important;
+ }

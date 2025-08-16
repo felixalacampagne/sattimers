@@ -1,15 +1,4 @@
 // src/app/timer-list/timer-list.component.scss
-@use '@angular/material' as mat;
-
-// Needed to display icons in material buttons. Not sure whether both are required
-@use 'material-symbols'; // npm install material-symbols 
-
-//@import "@fontsource-variable/roboto-flex/wght.css"; // npm install @fontsource-variable/roboto-flex
-// .timerlist
-// {
-//    min-width: 500px;
-// }
-
 .row {
    height: 30px;
    margin-top: 0px; 
@@ -29,14 +18,25 @@ td.nowrap
    background-color: rgba(255, 0, 0, 0.125) !important;
 }
 
-.mat-mdc-row:nth-child(even) {
+// It seems that the hidden child row counts as a row, so each visible row is an actual 
+// count of 2, so 
+// dark rows:  0, 4, 8, 12
+// light rows: 2, 6, 10, 14
+// child rows: 1, 3, 5, 7
+// except that the row index starts at 1:
+// dark:  1,        5,          9,             13,
+// light:     3,          7,           11,              15
+// child:   2,   4,    6,    8,    10,     12,     14 
+.mat-mdc-row:nth-child(4n+1) {
+   background-color: rgba(216, 215, 212, 0.288);
+}
+.mat-mdc-row:nth-child(2n) {
+  background-color: rgba(216, 215, 212, 0.075);
+}
+.mat-mdc-row:nth-child(4n+3) {
    background-color: rgba(216, 215, 212, 0.125);
 }
  
-.mat-mdc-row:nth-child(odd) {
-   background-color: rgba(216, 215, 212, 0.288);
-   
-}
 
 .mat-mdc-header-row
 {
