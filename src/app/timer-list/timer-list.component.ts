@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TimerUtilsService } from '../service/timer-utils.service';
 import { DeviceDetectorService } from 'ngx-device-detector'; // npm install ngx-device-detector
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
-
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'timer-list',
@@ -58,10 +58,28 @@ desktopDisplay: boolean = false;
       }
    }
 
+   // The EPG pages currently trigger adding a timer by invoke the satbox timerlist page with a set of URL parameters
+   // representing the timer, ie. the http request contains parameters and these parameters are read by the reponse running
+   // in the browser client.
+   // I have no idea whether this is going to work for Angular. 
+
+
    ngOnInit() 
    {
       console.log('TimerListComponent.ngOnInit: start');
-      this.bpObservable.observe(['(orientation: portrait)'])
+                
+      // Try to get the add timer parameters  
+      let t : Timer = new Timer();
+      t.serviceref = "undefined";                
+      const url = window.location.href;
+      if (url.includes('?')) {
+         const httpParams = new HttpParams({ fromString: url.split('?')[1] });
+         t = this.utils.parseParamsToTimer(httpParams);
+      }
+
+      if(t.serviceref == "undefined")
+      {
+         this.bpObservable.observe(['(orientation: portrait)'])
                         .subscribe(result => {
                            if(result.matches){
                               this.landscapeDisplay = false;
@@ -74,7 +92,7 @@ desktopDisplay: boolean = false;
                            }
                         });
       
-      this.bpObservable.observe(['(orientation: landscape)'])
+         this.bpObservable.observe(['(orientation: landscape)'])
                         .subscribe(result => {
                         if(result.matches){
                            this.landscapeDisplay = true;
@@ -83,7 +101,12 @@ desktopDisplay: boolean = false;
                            this.displayedColumns = this.landscapeColumns; 
                         }
                         });      
-      this.loadTimers();
+         this.loadTimers();
+      }
+      else
+      {
+         this.edittimer(t);
+      }
       console.log("TimerListComponent.ngOnInit: finish");
    }
 
@@ -110,22 +133,38 @@ desktopDisplay: boolean = false;
              }
            },
           error: (err)=>{
-              console.log("TransactionsComponent.loadTimers: An error occured during subscribe: " + JSON.stringify(err, null, 2));
+              console.log("TimerListComponent.loadTimers: An error occured during subscribe: " + JSON.stringify(err, null, 2));
               } ,
-          complete: ()=>{console.log("TransactionsComponent.loadTimers: completed");}
+          complete: ()=>{console.log("TimerListComponent.loadTimers: completed");}
        });
     
-      console.log("TransactionsComponent.loadTimers:Finished");   
+      console.log("TimerListComponent.loadTimers:Finished");   
    }
 
    edittimer(timer: Timer) 
    {
+      // window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self"); 
       throw new Error('Method not implemented.');
    }
 
    deletetimer(timer: Timer) 
    {
-      throw new Error('Method not implemented.');
+      console.log("TimerListComponent.deletetimer: Starting");
+            
+      this.timerService.deleteTimer(timer).subscribe({
+          next: (res)=>{
+            console.log("TimerListComponent.deletetimer: result: " + JSON.stringify(res));
+           },
+          error: (err)=>{
+              console.log("TimerListComponent.deletetimer: An error occurred: " + JSON.stringify(err, null, 2));
+              } ,
+          complete: ()=>{
+            this.loadTimers();
+            console.log("TimerListComponent.deletetimer: completed");
+         }
+       });
+    
+      console.log("TimerListComponent.deletetimer:Finished");
    }   
  
    
