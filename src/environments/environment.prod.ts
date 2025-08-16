@@ -1,3 +1,5 @@
+// Use 'ng build --configuration production' to use the setting from this file
+// test URL: http://sf8008/static/cpa-ng/
 export const environment = {
    production: false,
  
