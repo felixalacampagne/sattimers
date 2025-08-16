@@ -11,7 +11,6 @@ import { DeviceDetectorService } from 'ngx-device-detector'; // npm install ngx-
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { HttpParams } from '@angular/common/http';
 
-
 @Component({
   selector: 'timer-list',
   imports: [CommonModule, 
@@ -68,7 +67,19 @@ desktopDisplay: boolean = false;
    ngOnInit() 
    {
       console.log('TimerListComponent.ngOnInit: start');
-      this.bpObservable.observe(['(orientation: portrait)'])
+                
+      // Try to get the add timer parameters  
+      let t : Timer = new Timer();
+      t.serviceref = "undefined";                
+      const url = window.location.href;
+      if (url.includes('?')) {
+         const httpParams = new HttpParams({ fromString: url.split('?')[1] });
+         t = this.utils.parseParamsToTimer(httpParams);
+      }
+
+      if(t.serviceref == "undefined")
+      {
+         this.bpObservable.observe(['(orientation: portrait)'])
                         .subscribe(result => {
                            if(result.matches){
                               this.landscapeDisplay = false;
@@ -81,7 +92,7 @@ desktopDisplay: boolean = false;
                            }
                         });
       
-      this.bpObservable.observe(['(orientation: landscape)'])
+         this.bpObservable.observe(['(orientation: landscape)'])
                         .subscribe(result => {
                         if(result.matches){
                            this.landscapeDisplay = true;
@@ -89,18 +100,7 @@ desktopDisplay: boolean = false;
                            this.expandedTimer = null;
                            this.displayedColumns = this.landscapeColumns; 
                         }
-                        }); 
-                        
-      // Try to get the add timer parameters  
-      let t : Timer = new Timer();
-      t.serviceref = "undefined";                
-      const url = window.location.href;
-      if (url.includes('?')) {
-         const httpParams = new HttpParams({ fromString: url.split('?')[1] });
-         t = this.utils.parseParamsToTimer(httpParams);
-      }
-      if(t.serviceref == "undefined")
-      {
+                        });      
          this.loadTimers();
       }
       else
