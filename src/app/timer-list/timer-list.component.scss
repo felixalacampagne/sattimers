@@ -78,6 +78,14 @@ button[mat-icon-button].mat-mdc-icon-button.small {
    zoom: 0.8 !important; 
 }
 
+// margin-left causes the option buttons to be flushed to the right of the
+// expanded detail cell which is sort of the same when they are displayed in 
+// normal mode.
+.cell-option
+{
+   margin-left: auto
+}
+
 .timer-cancel {
    background-color: rgb(255, 80, 80)  !important;
 }
@@ -121,3 +129,60 @@ tr.timer-detail-row {
 .timer-toggle-button-expanded {
    transform: rotate(180deg);
 }
+
+.action-button
+{
+   margin-left: 5px;
+   margin-right: 5px;
+}
+
+// Trying to get the top right close window button to vertically align with the 
+// title text - no way to get it to move up to a suitable position!!!!
+.mat-mdc-card-header
+{
+   display:inline;
+}
+
+// This is the only way that I've tried (thousands!!) that actually moves the close
+// button up to be level with the title text on the right.
+.close-button
+{
+   position: relative;
+   top: -6px;
+}
+.title-card-left
+{
+   display: inline; 
+}
+
+.title-card-right
+{
+   display: inline;
+   float: right;
+}
+
+// Apparently there are no standard classes for the standard color variants anymore.
+.mat-error 
+{
+   background-color: var(--mat-sys-error) !important;
+}
+.mat-mdc-card-actions
+{
+   display:inline;
+   margin-top: 0px;      
+}
+
+.actions-card-right
+{
+   display: inline;
+   float: right;
+   margin-bottom: 10px;
+   margin-right: 10px
+}
+
+.actions-card-left
+{
+   display: inline;
+   margin-bottom: 10px;
+}
+
