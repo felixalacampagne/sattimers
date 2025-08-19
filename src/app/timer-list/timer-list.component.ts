@@ -1,5 +1,5 @@
 // src/app/timer-list/timer-list.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { OWITimersService } from '../service/owitimers.service';
 import { Timer } from '../model/timer.model';
 import { CommonModule } from '@angular/common';
@@ -10,6 +10,8 @@ import { TimerUtilsService } from '../service/timer-utils.service';
 import { DeviceDetectorService } from 'ngx-device-detector'; // npm install ngx-device-detector
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { HttpParams } from '@angular/common/http';
+import { TimerDeleteConfirmModalComponent } from './timer-delete-confirm-modal.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'timer-list',
@@ -41,6 +43,8 @@ timers : Timer[] | undefined;
 expandedTimer: Timer | null = null;
 landscapeDisplay: boolean = false;
 desktopDisplay: boolean = false;
+
+dialog = inject(MatDialog);
 
    constructor(private timerService: OWITimersService,
       private deviceService: DeviceDetectorService,
@@ -170,6 +174,27 @@ desktopDisplay: boolean = false;
       console.log("TimerListComponent.deletetimer:Finished");
    }   
  
+   delTimerConfirm(timer: Timer) 
+   {
+      this.dialog
+         .open(TimerDeleteConfirmModalComponent, {data :timer} )
+         .afterClosed()
+         .subscribe(result => 
+         {
+            console.log("delTimerConfirm: dialog closed: " + JSON.stringify(result, null, 2));
+            if(result)
+            {
+               console.log("delTimerConfirm: deleting timer");
+               this.deletetimer(timer);      
+            }
+            else
+            {
+               console.log("delTimerConfirm: NOT deleting timer");
+            }
+         });
+   }
+   
+
    
    /** Checks whether an element is expanded. */
    isExpanded(timer: Timer) {
