@@ -7,5 +7,6 @@ export const environment = {
    api_app: "/api/",
    envName: ' (JLIVE)',
    uiversion: ' v0.1',
-   folder: ''  
+   folder: '',
+   titlePrefix: 'SF8008'  
  };

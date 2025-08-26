@@ -5,5 +5,6 @@ export const environment = {
    api_app: "/api/",
    envName: ' TEST',
    uiversion: ' v0.1',
-   folder: '/assets'  
+   folder: '/assets',
+   titlePrefix: 'TEST'  
  };
