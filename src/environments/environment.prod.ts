@@ -8,5 +8,5 @@ export const environment = {
    envName: ' (JLIVE)',
    uiversion: ' v0.1',
    folder: '',
-   titlePrefix: 'SF8008'  
+   titlePrefix: 'VUUltimo'  
  };
