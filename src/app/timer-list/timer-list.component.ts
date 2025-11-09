@@ -12,11 +12,12 @@ import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { HttpParams } from '@angular/common/http';
 import { TimerDeleteConfirmModalComponent } from './timer-delete-confirm-modal.component';
 import { MatDialog } from '@angular/material/dialog';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'timer-list',
-  imports: [CommonModule, 
-            MatTableModule, 
+  imports: [CommonModule,
+            MatTableModule,
             MatIconModule,
             MatButtonModule,
             LayoutModule
@@ -24,10 +25,11 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './timer-list.component.html',
   styleUrls: ['../../styles.scss',
               './timer-list.component.scss'
-              
+
   ]
 })
 export class TimerListComponent implements OnInit {
+[x: string]: any;
 
 // WARNING: The order here determines the column order, not the order of the columns in the html!!!!
 
@@ -39,7 +41,7 @@ portraitColumns: string[] = [
 ];
 
 displayedColumns: string[] = this.landscapeColumns;
-timers : Timer[] | undefined;   
+timers : Timer[] | undefined;
 expandedTimer: Timer | null = null;
 landscapeDisplay: boolean = false;
 desktopDisplay: boolean = false;
@@ -49,15 +51,16 @@ dialog = inject(MatDialog);
    constructor(private timerService: OWITimersService,
       private deviceService: DeviceDetectorService,
                public utils: TimerUtilsService,
-               private bpObservable: BreakpointObserver
+               private bpObservable: BreakpointObserver,
+               private titleService: Title
             )
    {
-      this.landscapeDisplay = this.bpObservable.isMatched('(orientation: landscape)'); 
-      this.desktopDisplay = false; // this.deviceService.isDesktop();  always give true when emulating mobile layout 
+      this.landscapeDisplay = this.bpObservable.isMatched('(orientation: landscape)');
+      this.desktopDisplay = false; // this.deviceService.isDesktop();  always give true when emulating mobile layout
       if(this.desktopDisplay || this.landscapeDisplay) {
          console.log("TimerListComponent.<init>: set landscape columns: dt:" + this.desktopDisplay + " land:" + this.landscapeDisplay);
-         this.displayedColumns = this.landscapeColumns;   
-      }   
+         this.displayedColumns = this.landscapeColumns;
+      }
       else
       {
          console.log("TimerListComponent.<init>: set portrait columns");
@@ -68,16 +71,16 @@ dialog = inject(MatDialog);
    // The EPG pages currently trigger adding a timer by invoke the satbox timerlist page with a set of URL parameters
    // representing the timer, ie. the http request contains parameters and these parameters are read by the reponse running
    // in the browser client.
-   // I have no idea whether this is going to work for Angular. 
+   // I have no idea whether this is going to work for Angular.
 
 
-   ngOnInit() 
+   ngOnInit()
    {
       console.log('TimerListComponent.ngOnInit: start');
-                
-      // Try to get the add timer parameters  
+
+      // Try to get the add timer parameters
       let t : Timer = new Timer();
-      t.serviceref = "undefined";                
+      t.serviceref = "undefined";
       const url = window.location.href;
       if (url.includes('?')) {
          const httpParams = new HttpParams({ fromString: url.split('?')[1] });
@@ -98,29 +101,30 @@ dialog = inject(MatDialog);
                               }
                            }
                         });
-      
+
          this.bpObservable.observe(['(orientation: landscape)'])
                         .subscribe(result => {
                         if(result.matches){
                            this.landscapeDisplay = true;
                            console.log("TimerListComponent.ngOnInit: set landscape columns");
                            this.expandedTimer = null;
-                           this.displayedColumns = this.landscapeColumns; 
+                           this.displayedColumns = this.landscapeColumns;
                         }
-                        });      
+                        });
          this.loadTimers();
       }
       else
       {
          this.edittimer(t);
       }
+      this.titleService.setTitle(this.utils.titlePrefix() + " Timers");
       console.log("TimerListComponent.ngOnInit: finish");
    }
 
    loadTimers()
    {
       console.log("TimerListComponent.loadTimers: Starting");
-            
+
       this.timerService.getTimerList().subscribe({
           next: (res)=>{
              if(!res)
@@ -144,20 +148,20 @@ dialog = inject(MatDialog);
               } ,
           complete: ()=>{console.log("TimerListComponent.loadTimers: completed");}
        });
-    
-      console.log("TimerListComponent.loadTimers:Finished");   
+
+      console.log("TimerListComponent.loadTimers:Finished");
    }
 
-   edittimer(timer: Timer) 
+   edittimer(timer: Timer)
    {
-      // window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self"); 
+      // window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self");
       throw new Error('Method not implemented.');
    }
 
-   deletetimer(timer: Timer) 
+   deletetimer(timer: Timer)
    {
       console.log("TimerListComponent.deletetimer: Starting");
-            
+
       this.timerService.deleteTimer(timer).subscribe({
           next: (res)=>{
             console.log("TimerListComponent.deletetimer: result: " + JSON.stringify(res));
@@ -170,22 +174,22 @@ dialog = inject(MatDialog);
             console.log("TimerListComponent.deletetimer: completed");
          }
        });
-    
+
       console.log("TimerListComponent.deletetimer:Finished");
-   }   
- 
-   delTimerConfirm(timer: Timer) 
+   }
+
+   delTimerConfirm(timer: Timer)
    {
       this.dialog
          .open(TimerDeleteConfirmModalComponent, {data :timer} )
          .afterClosed()
-         .subscribe(result => 
+         .subscribe(result =>
          {
             console.log("delTimerConfirm: dialog closed: " + JSON.stringify(result, null, 2));
             if(result)
             {
                console.log("delTimerConfirm: deleting timer");
-               this.deletetimer(timer);      
+               this.deletetimer(timer);
             }
             else
             {
@@ -193,9 +197,9 @@ dialog = inject(MatDialog);
             }
          });
    }
-   
 
-   
+
+
    /** Checks whether an element is expanded. */
    isExpanded(timer: Timer) {
       // console.log("isExpanded: " + (this.expandedTimer === timer));
@@ -207,5 +211,9 @@ dialog = inject(MatDialog);
       // console.log("toggle: expandedTimer: " + this.expandedTimer);
       this.expandedTimer = this.isExpanded(timer) ? null : timer;
    }
-}   
+
+   getDuration(t : Timer) {
+      return Math.ceil((t.end - t.begin)/60);
+   }
+}
 
