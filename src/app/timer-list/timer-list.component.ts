@@ -13,6 +13,7 @@ import { HttpParams } from '@angular/common/http';
 import { TimerDeleteConfirmModalComponent } from './timer-delete-confirm-modal.component';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
+import { ActivatedRoute, Params } from '@angular/router';
 
 @Component({
   selector: 'timer-list',
@@ -52,7 +53,8 @@ dialog = inject(MatDialog);
       private deviceService: DeviceDetectorService,
                public utils: TimerUtilsService,
                private bpObservable: BreakpointObserver,
-               private titleService: Title
+               private titleService: Title,
+               private route: ActivatedRoute
             )
    {
       this.landscapeDisplay = this.bpObservable.isMatched('(orientation: landscape)');
@@ -85,10 +87,38 @@ dialog = inject(MatDialog);
    // I think there are more angular like ways to handle the parameters so perhaps
    // I need to look at using them.
 
+   handleParams(params : Params)
+   {
+      console.log("TimerListComponent.handleParams: queryParams: " + JSON.stringify(params));
+      /*
+      // Try to get the add timer parameters
+      let t : Timer = new Timer();
+      t.serviceref = "undefined";
+      const url = window.location.href;
+      console.log("TimerListComponent.ngOnInit: url: " + url);
+      if (url.includes('?')) {
+         const httpParams = new HttpParams({ fromString: url.split('?')[1] });
+         t = this.utils.parseParamsToTimer(httpParams);
+      }
+      if(t.serviceref == "undefined")
+      {
+         this.loadTimers();
+      }
+      else
+      {
+         this.addTimer(t);
+      }
+         */
+   }
+
    ngOnInit()
    {
       console.log('TimerListComponent.ngOnInit: start');
-
+      this.route.queryParams.subscribe(
+         p => {
+            this.handleParams(p);
+         }
+      );
 
       this.bpObservable.observe(['(orientation: portrait)'])
                      .subscribe(result => {
@@ -114,25 +144,8 @@ dialog = inject(MatDialog);
                      });
 
       this.titleService.setTitle(this.utils.titlePrefix() + " Timers");
+      this.loadTimers();
 
-      // Try to get the add timer parameters
-      let t : Timer = new Timer();
-      t.serviceref = "undefined";
-      const url = window.location.href;
-      console.log("TimerListComponent.ngOnInit: url: " + url);
-      if (url.includes('?')) {
-         const httpParams = new HttpParams({ fromString: url.split('?')[1] });
-         t = this.utils.parseParamsToTimer(httpParams);
-      }
-
-      if(t.serviceref == "undefined")
-      {
-         this.loadTimers();
-      }
-      else
-      {
-         this.addTimer(t);
-      }
       console.log("TimerListComponent.ngOnInit: finish");
    }
 
