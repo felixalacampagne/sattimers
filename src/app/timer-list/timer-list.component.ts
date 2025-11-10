@@ -72,16 +72,54 @@ dialog = inject(MatDialog);
    // representing the timer, ie. the http request contains parameters and these parameters are read by the reponse running
    // in the browser client.
    // I have no idea whether this is going to work for Angular.
-
+   //
+   // It seems to partially work. If a new window is created
+   // then the parameters are parsed and the timer is added.
+   // At the moment it DOES NOT work when a url with new parameters is invoked
+   // on a window which is already open. The new parameters are used
+   // if the page is refreshed. No clue what to do to make the page automatically
+   // detect that the url has changed. Maybe need a specific 'timerinsert' name to use which is
+   // then replaced by the timerlist name, or maybe the parameters must be reset
+   // to nothing - really don't have a clue.
+   //
+   // I think there are more angular like ways to handle the parameters so perhaps
+   // I need to look at using them.
 
    ngOnInit()
    {
       console.log('TimerListComponent.ngOnInit: start');
 
+
+      this.bpObservable.observe(['(orientation: portrait)'])
+                     .subscribe(result => {
+                        if(result.matches){
+                           this.landscapeDisplay = false;
+                           if(! this.desktopDisplay)
+                           {
+                              console.log("TimerListComponent.ngOnInit: set portrait columns");
+                              this.expandedTimer = null;
+                              this.displayedColumns = this.portraitColumns;
+                           }
+                        }
+                     });
+
+      this.bpObservable.observe(['(orientation: landscape)'])
+                     .subscribe(result => {
+                     if(result.matches){
+                        this.landscapeDisplay = true;
+                        console.log("TimerListComponent.ngOnInit: set landscape columns");
+                        this.expandedTimer = null;
+                        this.displayedColumns = this.landscapeColumns;
+                     }
+                     });
+
+      this.titleService.setTitle(this.utils.titlePrefix() + " Timers");
+
       // Try to get the add timer parameters
       let t : Timer = new Timer();
       t.serviceref = "undefined";
       const url = window.location.href;
+      console.log("TimerListComponent.ngOnInit: url: " + url);
       if (url.includes('?')) {
          const httpParams = new HttpParams({ fromString: url.split('?')[1] });
          t = this.utils.parseParamsToTimer(httpParams);
@@ -89,35 +127,12 @@ dialog = inject(MatDialog);
 
       if(t.serviceref == "undefined")
       {
-         this.bpObservable.observe(['(orientation: portrait)'])
-                        .subscribe(result => {
-                           if(result.matches){
-                              this.landscapeDisplay = false;
-                              if(! this.desktopDisplay)
-                              {
-                                 console.log("TimerListComponent.ngOnInit: set portrait columns");
-                                 this.expandedTimer = null;
-                                 this.displayedColumns = this.portraitColumns;
-                              }
-                           }
-                        });
-
-         this.bpObservable.observe(['(orientation: landscape)'])
-                        .subscribe(result => {
-                        if(result.matches){
-                           this.landscapeDisplay = true;
-                           console.log("TimerListComponent.ngOnInit: set landscape columns");
-                           this.expandedTimer = null;
-                           this.displayedColumns = this.landscapeColumns;
-                        }
-                        });
          this.loadTimers();
       }
       else
       {
-         this.edittimer(t);
+         this.addTimer(t);
       }
-      this.titleService.setTitle(this.utils.titlePrefix() + " Timers");
       console.log("TimerListComponent.ngOnInit: finish");
    }
 
@@ -150,6 +165,26 @@ dialog = inject(MatDialog);
        });
 
       console.log("TimerListComponent.loadTimers:Finished");
+   }
+
+   addTimer(timer : Timer)
+   {
+      this.timerService.addTimer(timer).subscribe({
+          next: (res)=>{
+               console.log("TimerListComponent.addTimer: result: " + JSON.stringify(res));
+            this.loadTimers();
+           },
+          error: (err)=>{
+              console.log("TimerListComponent.addTimer: error: " + JSON.stringify(err, null, 2));
+            this.loadTimers();
+              } ,
+          complete: ()=>{
+            // WARNING: does not complete if there is an error!!!!!
+            console.log("TimerListComponent.addTimer: completed");
+            // this.loadTimers();
+         }
+       });
+
    }
 
    edittimer(timer: Timer)

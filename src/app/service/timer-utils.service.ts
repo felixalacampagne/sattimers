@@ -96,7 +96,7 @@ public parseParamsToTimer(params: HttpParams) : Timer
 {
    let timer : Timer = new Timer();
    var sref = "" + params.get("sref");
-   let repeated : number =0;
+   let repeated : number = 0;
    if(sref == "undefined")
    {
       // Something for the caller to check for success without needing to put Timer | null all over the place
@@ -104,8 +104,8 @@ public parseParamsToTimer(params: HttpParams) : Timer
       return timer;
    }
 
-   let stmp = "" + params.get("repeated");
-   if(stmp == "undefined")
+   let stmp = params.get("repeated");
+   if(stmp == null )
    {
       repeated = 0;
    }
