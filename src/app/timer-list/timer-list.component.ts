@@ -122,7 +122,7 @@ dialog = inject(MatDialog);
                      }
                      });
 
-      this.titleService.setTitle(this.utils.titlePrefix() + " Timers");
+      // this.titleService.setTitle(this.utils.titlePrefix() + " Timers");
       this.loadTimers();
 
       console.log("TimerListComponent.ngOnInit: finish");

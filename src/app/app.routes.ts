@@ -13,7 +13,7 @@ export const routes: Routes = [
 ];
 
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class HostnameTitleStrategy extends TitleStrategy
 {
    constructor(private readonly title: Title,
@@ -30,15 +30,3 @@ export class HostnameTitleStrategy extends TitleStrategy
     }
   }
 }
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
-  providers: [
-    {
-      provide: TitleStrategy,
-      useClass: HostnameTitleStrategy
-    }
-  ]
-})
-export class AppRoutingModule {}
