@@ -9,11 +9,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { TimerUtilsService } from '../service/timer-utils.service';
 import { DeviceDetectorService } from 'ngx-device-detector'; // npm install ngx-device-detector
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
-import { HttpParams } from '@angular/common/http';
 import { TimerDeleteConfirmModalComponent } from './timer-delete-confirm-modal.component';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 @Component({
   selector: 'timer-list',
@@ -32,7 +31,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 export class TimerListComponent implements OnInit {
 [x: string]: any;
 
-// WARNING: The order here determines the column order, not the order of the columns in the html!!!!
+// WARNING: The order here determines the column order, the order of the columns in the html is ignored!!!!
 
 landscapeColumns: string[] = [
    'programme', 'sdate', 'start', 'channel', 'duration', 'repeated', 'end', 'options'
@@ -54,7 +53,8 @@ dialog = inject(MatDialog);
                public utils: TimerUtilsService,
                private bpObservable: BreakpointObserver,
                private titleService: Title,
-               private route: ActivatedRoute
+               private route: ActivatedRoute,
+               private router: Router
             )
    {
       this.landscapeDisplay = this.bpObservable.isMatched('(orientation: landscape)');
@@ -70,50 +70,29 @@ dialog = inject(MatDialog);
       }
    }
 
-   // The EPG pages currently trigger adding a timer by invoke the satbox timerlist page with a set of URL parameters
-   // representing the timer, ie. the http request contains parameters and these parameters are read by the reponse running
+   // The EPG pages currently trigger adding a timer by invoking the satbox timerlist page with a set of URL parameters
+   // representing the timer, ie. the timerlist http request contains parameters and these parameters are read by the reponse running
    // in the browser client.
-   // I have no idea whether this is going to work for Angular.
-   //
-   // It seems to partially work. If a new window is created
-   // then the parameters are parsed and the timer is added.
-   // At the moment it DOES NOT work when a url with new parameters is invoked
-   // on a window which is already open. The new parameters are used
-   // if the page is refreshed. No clue what to do to make the page automatically
-   // detect that the url has changed. Maybe need a specific 'timerinsert' name to use which is
-   // then replaced by the timerlist name, or maybe the parameters must be reset
-   // to nothing - really don't have a clue.
-   //
-   // I think there are more angular like ways to handle the parameters so perhaps
-   // I need to look at using them.
-
    handleParams(params : Params)
    {
       console.log("TimerListComponent.handleParams: queryParams: " + JSON.stringify(params));
-      /*
+
       // Try to get the add timer parameters
-      let t : Timer = new Timer();
-      t.serviceref = "undefined";
-      const url = window.location.href;
-      console.log("TimerListComponent.ngOnInit: url: " + url);
-      if (url.includes('?')) {
-         const httpParams = new HttpParams({ fromString: url.split('?')[1] });
-         t = this.utils.parseParamsToTimer(httpParams);
-      }
-      if(t.serviceref == "undefined")
-      {
-         this.loadTimers();
-      }
-      else
+      let t : Timer ;
+
+      t = this.utils.parseParamsToTimer(params);
+      if(t.serviceref != null)
       {
          this.addTimer(t);
       }
-         */
    }
 
    ngOnInit()
    {
       console.log('TimerListComponent.ngOnInit: start');
+
+      // Setup listener for changes to the parameter list, ie. when an already opened timerlist window
+      // is invoked with a new timer from the EPG list pages
       this.route.queryParams.subscribe(
          p => {
             this.handleParams(p);
@@ -149,32 +128,51 @@ dialog = inject(MatDialog);
       console.log("TimerListComponent.ngOnInit: finish");
    }
 
-   loadTimers()
+   loadTimers(newTimer? : Timer)
    {
       console.log("TimerListComponent.loadTimers: Starting");
 
       this.timerService.getTimerList().subscribe({
-          next: (res)=>{
-             if(!res)
-             {
-               console.log("TimerListComponent.loadTimers: variable is not initialized");
-             }
-             else
-             {
-               if(res.result)
+         next: (res) => {
+            if(!res)
+            {
+              console.log("TimerListComponent.loadTimers: result is not initialized");
+            }
+            else if(res.result)
+            {
+               this.timers = res.timers;
+
+               // Hack to highlight new timer. The new state is no longer set in the list
+               // returned from the stb so must apply it here before display
+               if(typeof newTimer !== "undefined")
                {
-                  this.timers = res.timers;
+                  // console.log("TimerListComponent.loadTimers: checking for newTimer: " + newTimer.name );
+                  this.timers.find(t => {
+                     if(t.name == newTimer.name)
+                     {
+                        // console.log("TimerListComponent.loadTimers: found newTimer: state:" + t.state );
+                        if(t.state == 0)
+                        {
+                           t.state = 3;
+                        }
+                        return true;
+                     }
+                     return false;
+                  })
+
                }
-               else
-               {
-                  console.log("TimerListComponent.loadTimers: result was not true: " + JSON.stringify(res));
-               }
-             }
-           },
-          error: (err)=>{
-              console.log("TimerListComponent.loadTimers: An error occured during subscribe: " + JSON.stringify(err, null, 2));
-              } ,
-          complete: ()=>{console.log("TimerListComponent.loadTimers: completed");}
+            }
+            else
+            {
+               console.log("TimerListComponent.loadTimers: result was not true: " + JSON.stringify(res));
+            }
+         },
+         error: (err) => {
+            console.log("TimerListComponent.loadTimers: Error: " + JSON.stringify(err, null, 2));
+         },
+         complete: () => {
+            // console.log("TimerListComponent.loadTimers: completed");
+         }
        });
 
       console.log("TimerListComponent.loadTimers:Finished");
@@ -183,18 +181,26 @@ dialog = inject(MatDialog);
    addTimer(timer : Timer)
    {
       this.timerService.addTimer(timer).subscribe({
-          next: (res)=>{
-               console.log("TimerListComponent.addTimer: result: " + JSON.stringify(res));
+         next: (res)=>{
+            console.log("TimerListComponent.addTimer: result: " + JSON.stringify(res));
+            // {"result":true,"message":"Timer 'PlayOJO Live Casino Show 25-11-14 3x317 Episode 317' added"}
+            // TODO result can be false, need to put the message somewhere
+            // Reload this page WITHOUT the add timer parameters so page refresh does not
+            // try to re-add the same timer. Strangely it does not actually trigger a reload of the page
+            // so must still make call to loadTimers which is lucky as it allows to pass the new timer
+            // so it can be highlighted.
+            this.router.navigate([], { queryParams: {} });
+            this.loadTimers(timer);
+         },
+         error: (err)=>{
+            // TODO Need somewhere to put the error message...
+            console.log("TimerListComponent.addTimer: error: " + JSON.stringify(err, null, 2));
+            this.router.navigate([], { queryParams: {} });
             this.loadTimers();
-           },
-          error: (err)=>{
-              console.log("TimerListComponent.addTimer: error: " + JSON.stringify(err, null, 2));
-            this.loadTimers();
-              } ,
-          complete: ()=>{
+         } ,
+         complete: ()=>{
             // WARNING: does not complete if there is an error!!!!!
-            console.log("TimerListComponent.addTimer: completed");
-            // this.loadTimers();
+            // console.log("TimerListComponent.addTimer: completed");
          }
        });
 
@@ -233,16 +239,16 @@ dialog = inject(MatDialog);
          .afterClosed()
          .subscribe(result =>
          {
-            console.log("delTimerConfirm: dialog closed: " + JSON.stringify(result, null, 2));
+            // console.log("delTimerConfirm: dialog closed: " + JSON.stringify(result, null, 2));
             if(result)
             {
-               console.log("delTimerConfirm: deleting timer");
+               // console.log("delTimerConfirm: deleting timer");
                this.deletetimer(timer);
             }
-            else
-            {
-               console.log("delTimerConfirm: NOT deleting timer");
-            }
+            // else
+            // {
+            //    console.log("delTimerConfirm: NOT deleting timer");
+            // }
          });
    }
 

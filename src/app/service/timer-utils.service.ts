@@ -2,6 +2,7 @@
 import { Injectable } from "@angular/core";
 import { Timer } from "../model/timer.model";
 import { HttpParams } from "@angular/common/http";
+import { Params } from "@angular/router";
 
 
 @Injectable({
@@ -92,7 +93,88 @@ public repeatedDays(t: Timer) : string {
    return repeateddays.join(",");
 }
 
-public parseParamsToTimer(params: HttpParams) : Timer
+public parseParamsToTimer(params: Params) : Timer
+{
+   let timer : Timer = new Timer();
+   var sref = params["sref"];
+
+   if(sref == null)
+   {
+      return timer;
+   }
+
+   let repeated : number = Number(params["repeated"]);
+   if(isNaN(repeated) )
+   {
+      repeated = 0;
+   }
+
+   let name  = params["name"];
+   let sunx;
+   let eunx;
+
+   if((params["sunx"] !== null) && (params["eunx"] !== null) )
+   {
+      // This is the way the EPG sends the start/stop/times
+      console.log("getTimerFromParams: Using unix date values");
+      sunx = Number(params["sunx"]);
+      eunx = Number(params["eunx"]);
+   }
+   else
+   {
+      // This is the way the timeredit form sends the start/stop times
+      // Date will be interpreted using the local device time zone
+      console.log("getTimerFromParams: Using component date values");
+      sunx = new Date(
+         Number(params["syear"]),
+         Number(params["smonth"])-1,
+         Number(params["sday"]),
+         Number(params["shour"]),
+         Number(params["smin"]),
+         0).getTime();
+      eunx = new Date(
+         Number(params["eyear"]),
+         Number(params["emonth"])-1,
+         Number(params["eday"]),
+         Number(params["ehour"]),
+         Number(params["emin"]),
+         0).getTime();
+   }
+
+   timer.sunx = sunx; // The original, unrounded value
+   timer.eunx = eunx; // The original, unrounded value
+
+   // Times must be a multiple of 5 otherwise problems occur in the edit screen due to the intervals of the
+   // minute dropdown list. Applying the rounding to the millisecond value allows the end time to be easily rounded UP
+   var round = 5 * 60 * 1000;
+
+   // Round start DOWN
+   sunx = Math.floor(sunx / round) * round;
+
+   // Round end UP
+   eunx = Math.floor( (eunx + round - 1) / round) * round;
+
+   var begin = new Date(sunx).getTime();
+   var end = new Date(eunx).getTime();
+
+   timer.serviceref = this.deEscape(sref);
+   timer.repeated = repeated;
+   timer.name = this.deEscape(name);
+   timer.begin = begin;
+   timer.end = end;
+   // These are provided by the timeredit form. They are not provided by the EPG links
+   var refold = params["refOld"];
+   timer.refold = this.deEscape(refold);
+
+   timer.startold = params["startOld"];
+   timer.stopold = params["stopOld"];
+
+   return timer;
+}
+
+
+//deprecated - use parseParamsToTimer
+public parseHttpParamsToTimer(params: HttpParams) : Timer
 {
    let timer : Timer = new Timer();
    var sref = "" + params.get("sref");
@@ -182,6 +264,10 @@ public parseParamsToTimer(params: HttpParams) : Timer
 // Applies to the timer name and the serviceref
 deEscape(escaped : any) : string
 {
+   if(escaped == null)
+   {
+      return "";
+   }
 var descaped = escaped.replace(/\+/g, ' ');
 descaped = unescape(descaped); // converts hex to chars - deprecated but no alternative available!!!!!
 return descaped;
