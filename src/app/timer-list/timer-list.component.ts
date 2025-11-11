@@ -89,7 +89,7 @@ dialog = inject(MatDialog);
 
    ngOnInit()
    {
-      console.log('TimerListComponent.ngOnInit: start');
+      // console.log('TimerListComponent.ngOnInit: start');
 
       // Setup listener for changes to the parameter list, ie. when an already opened timerlist window
       // is invoked with a new timer from the EPG list pages
@@ -105,7 +105,7 @@ dialog = inject(MatDialog);
                            this.landscapeDisplay = false;
                            if(! this.desktopDisplay)
                            {
-                              console.log("TimerListComponent.ngOnInit: set portrait columns");
+                              // console.log("TimerListComponent.ngOnInit: set portrait columns");
                               this.expandedTimer = null;
                               this.displayedColumns = this.portraitColumns;
                            }
@@ -116,21 +116,20 @@ dialog = inject(MatDialog);
                      .subscribe(result => {
                      if(result.matches){
                         this.landscapeDisplay = true;
-                        console.log("TimerListComponent.ngOnInit: set landscape columns");
+                        // console.log("TimerListComponent.ngOnInit: set landscape columns");
                         this.expandedTimer = null;
                         this.displayedColumns = this.landscapeColumns;
                      }
                      });
 
-      // this.titleService.setTitle(this.utils.titlePrefix() + " Timers");
       this.loadTimers();
 
-      console.log("TimerListComponent.ngOnInit: finish");
+      // console.log("TimerListComponent.ngOnInit: finish");
    }
 
    loadTimers(newTimer? : Timer)
    {
-      console.log("TimerListComponent.loadTimers: Starting");
+      // console.log("TimerListComponent.loadTimers: Starting");
 
       this.timerService.getTimerList().subscribe({
          next: (res) => {
@@ -175,7 +174,7 @@ dialog = inject(MatDialog);
          }
        });
 
-      console.log("TimerListComponent.loadTimers:Finished");
+      // console.log("TimerListComponent.loadTimers:Finished");
    }
 
    addTimer(timer : Timer)
@@ -214,22 +213,25 @@ dialog = inject(MatDialog);
 
    deletetimer(timer: Timer)
    {
-      console.log("TimerListComponent.deletetimer: Starting");
+      // console.log("TimerListComponent.deletetimer: Starting");
 
       this.timerService.deleteTimer(timer).subscribe({
-          next: (res)=>{
+          next: (res) => {
             console.log("TimerListComponent.deletetimer: result: " + JSON.stringify(res));
-           },
-          error: (err)=>{
-              console.log("TimerListComponent.deletetimer: An error occurred: " + JSON.stringify(err, null, 2));
-              } ,
-          complete: ()=>{
             this.loadTimers();
-            console.log("TimerListComponent.deletetimer: completed");
+           },
+          error: (err) => {
+              console.log("TimerListComponent.deletetimer: An error occurred: " + JSON.stringify(err, null, 2));
+              this.loadTimers();
+              } ,
+          complete: () => {
+            // complete not executed if error
+            // this.loadTimers();
+            // console.log("TimerListComponent.deletetimer: completed");
          }
        });
 
-      console.log("TimerListComponent.deletetimer:Finished");
+      // console.log("TimerListComponent.deletetimer:Finished");
    }
 
    delTimerConfirm(timer: Timer)
