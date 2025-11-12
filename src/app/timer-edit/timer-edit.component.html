@@ -1,1 +1,81 @@
-<p>timer-edit works!</p>
+<!-- src/app/timer-edit/timer-edit.component.html -->
+<!--
+   The timer editing component. It will be displayed as a dialog but is written
+   without the dialog code so it could be included in its own page if
+   it turns out to be better than way.
+   NB. It is based on the standing order dialog, mainly because that has two
+   date fields... although it is two datetime fields that are required here...
+-->
+<mat-card class="so-card" appearance="outlined">
+   <mat-card-header class="so-card-head">
+     <mat-card-title>Timer Edit</mat-card-title>
+   </mat-card-header>
+   <form [formGroup]="editForm" novalidate (ngSubmit)="onSubmit()">
+     <mat-card-content>
+      <!-- Original form has a datepicker for the start date and two dropdowns for the HH and mm
+           where the MM are in 5min increments
+           The end time is five dropdowns for YYYY, MM, DD and HH mm. I think the date is
+           probably restricted to not being less than currently selected start time.
+           Don't think I want to do it like this but currently don't have an idea how I will do it...
+      -->
+
+         <!-- these need to include the time!! -->
+        <div class="row">
+           <div class="col">
+              <mat-form-field  appearance="outline" class="full-width">
+                 <mat-label>Start</mat-label>
+                 <input matInput [matDatepicker]="entrydatepicker" placeholder="dd/mm/yyyy" formControlName="starttime">
+                 <mat-datepicker-toggle matIconSuffix [for]="entrydatepicker"></mat-datepicker-toggle>
+                 <mat-datepicker #entrydatepicker></mat-datepicker>
+              </mat-form-field>
+           </div>
+           <div class="col">
+              <mat-form-field  appearance="outline" class="full-width">
+                 <mat-label>Finish</mat-label>
+                 <input matInput [matDatepicker]="paydatepicker" placeholder="dd/mm/yyyy" formControlName="endtime">
+                 <mat-datepicker-toggle matIconSuffix [for]="paydatepicker"></mat-datepicker-toggle>
+                 <mat-datepicker #paydatepicker></mat-datepicker>
+              </mat-form-field>
+           </div>
+        </div>
+
+        <div class="row">
+           <div class="col">
+              <mat-form-field  appearance="outline" class="full-width">
+                 <mat-label>Days</mat-label>
+              <!-- Day checkboxes for repeats  -->
+              </mat-form-field>
+           </div>
+        </div>
+        <div class="row">   <!-- channel selector -->
+         <div class="col">
+              <mat-form-field  appearance="outline" class="full-width">
+                 <mat-label>Channel</mat-label>
+                 <mat-select placeholder="Nothing" formControlName="channelid">
+                    @for (chan of Channel; track chan) {
+                    <mat-option [value]="chan.serviceref">{{ chan.servicename }}</mat-option>
+                    }
+                 </mat-select>
+              </mat-form-field>
+           </div>
+        </div>
+        <div class="row">
+           <mat-form-field  appearance="outline" class="full-width">
+              <mat-label>Name</mat-label>
+              <input matInput placeholder="" formControlName="timername">
+           </mat-form-field>
+        </div>
+
+      <!-- Original form contains additional items that I never use:
+               Action - always record
+               After event - always do nothing
+      -->
+      </mat-card-content>
+      <mat-card-actions>
+         <div class="actions-card-right">
+            <button mat-stroked-button type="reset" (click)="onCancel()">Cancel</button>
+            <button mat-flat-button type="submit" [disabled]="!editForm.valid">Submit</button>
+         </div>
+      </mat-card-actions>
+  </form>
+</mat-card>

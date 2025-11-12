@@ -1,3 +1,11 @@
+Handy commands:
+
+```
+git diff --ignore-cr-at-eol --ignore-space-at-eol >patch.diff
+git apply --whitespace=fix --ignore-whitespace --reject patch.diff
+patch --ignore-whitespace -p1 < patch.diff
+```
+
 # Sattimers
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.2.
