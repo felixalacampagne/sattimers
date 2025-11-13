@@ -18,17 +18,21 @@ gMonths  : string [] = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","O
    {
    }
 
+// Format date for display in the timer list, ie. Ddd DD-MM  (no year)
 // owiDate - date in OpenWebIF format, ie. seconds since the epoch instead of milliseconds
 public formatTimerDate(owiDate : number){
 
    let epochtime : number = Math.round(owiDate) * 1000;
+   let d : Date = new Date(epochtime);
+   let dispdate : string = "";
+   let idx : number;
 
-   // This does not appear to be giving a Date which causes formatDate to fail wtih
-   // the claim that getDay() is not a function - obviously it is a forking function.
-   // THe log output of the date is a number - should be a formatted date string.
-   let date : Date = new Date(epochtime);
-   //console.log("formatTimerDate: owiDate:" + owiDate + " epochtime:" + epochtime + " date:" + date);
-   return this.formatDate(date);
+   idx = d.getDay();
+   dispdate += "" + this.gDaysShort[idx];
+   dispdate += " " + this.zeropad(d.getDate(), 2);
+   dispdate += "-" + this.zeropad(d.getMonth()+1, 2);
+
+   return dispdate;
 }
 
 public formatTimerTime(owiDate : number){

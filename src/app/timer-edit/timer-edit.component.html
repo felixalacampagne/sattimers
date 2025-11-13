@@ -52,7 +52,7 @@
               <mat-form-field  appearance="outline" class="full-width">
                  <mat-label>Channel</mat-label>
                  <mat-select placeholder="Nothing" formControlName="channelid">
-                    @for (chan of Channel; track chan) {
+                    @for (chan of channels; track chan) {
                     <mat-option [value]="chan.serviceref">{{ chan.servicename }}</mat-option>
                     }
                  </mat-select>

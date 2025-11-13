@@ -85,4 +85,12 @@ export class TimerEditComponent {
          channelid: new FormControl(this.channels[0], Validators.required)  // dowpdown list of types as shown in transaction
        });
    }
+
+   public onSubmit()
+   {
+   }
+
+   public onCancel()
+   {
+   }
 }
