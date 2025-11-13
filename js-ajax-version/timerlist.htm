@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<!-- WARNING: This version requires version-less jquery files!
+
+     It may be necessary to copy the exiting versioned jquery files.
+     
+     NB. SF8008 and VULTIMO have the same version of the version-less jquery files - they
+     were copied from SF8008 to VULTIMO on 02 Aug 2025
+     
+     This file is located in:
+        \\vuultimo\Root\usr\lib\enigma2\python\Plugins\Extensions\OpenWebif\public\static\cpa
+        \\SF8008\root\usr\lib\enigma2\python\Plugins\Extensions\OpenWebif\public\static\cpa
+     
+  -->
 <HTML>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -13,7 +25,7 @@
 <body onload="doOnLoad(); return true">
 <script type="text/javascript">
 
-var VERSION = "20230107a"
+var VERSION = "20250802g"
    
 $(document).ready(function() {
    // document.title = "Edit Timer (" + hostdevice + ") v20210124f";
@@ -28,7 +40,13 @@ function doOnLoad()
    displayTimer();
 }
 
-// This file is located in: \\VUULTIMO\Root\usr\lib\enigma2\python\Plugins\Extensions\OpenWebif\public\static\cpa
+// 02-Aug-2025 Updated SF8008 with VUUP version of this file and it stopped working. Panic! No copy
+//             of the SF8008 version (I thought they were the same!!) and no clue what I changed to make
+//             it work. Finally found a copy of the SF8008 verison on speedy in the repo for an angular version
+//             (which wasn't on the NAS!!). So to avoid this happening again the VUUP and SF8008 versions of
+//             the file are once again the same - difference appears to be that the data is returned from the
+//             STB as plain text for the VUUP and as an object for SF8008. Fix is to crudely check the type of the
+//             data for string or object. Made a few tweaks here and there to fix some minor irritations.
 // 07-Jan-2023 Fix for timeedit not being able to update timers-it still uses the component times
 // 29-Dec-2022 While in the UK for Xmas I set a number of programmes to record only to find they were all off by an 
 //             hour. This is the first time I've hit this problem after 10+ years of use. Probably this was the first
@@ -299,8 +317,23 @@ $.ajax({
 async: false,
 url: url,
 success: function(data) {
-      // var response = $.parseJSON(data);
-      var response = data;
+
+      var response;
+      console.log("cpawebapi_execute: typeof data: " + typeof(data) );
+      if( typeof(data) == "string" )
+      {
+         response = $.parseJSON(data);
+      }
+      else if( typeof(data) == "object" )
+      {
+         response = data; 
+      }
+      else
+      {
+         $("#add_timer_reponse").html("<H1>Invalid data returned</H1>");
+         return;
+      }      
+      
       if(response.result == true)
       {
          $("#add_timer_reponse").html(response.message);
@@ -353,6 +386,14 @@ function formatTimerDate(owiDate){
    return formatDate(date);
 }
       
+// Prevent row being marked as newly added which makes it look like
+// it has been added again.
+function reloadTimerList()
+{
+   gAddedTimerID = "";
+   return loadTimerList();
+}
+      
 function loadTimerList()
 {
 console.log("loadTimerList: start");
@@ -365,9 +406,21 @@ success: function(data) {
    // on sf8008 'data' is already the timers object. This is surely something on the
    // browser side which is very confusing UNLESS the server response type is telling the
    // browser it is JSON and for the older receivers it is TEXT??
-   // timers = $.parseJSON(data);
-   timers = data; 
-   console.log("loadTimerList: data: " + data);
+   console.log("loadTimerList: typeof data: " + typeof(data) );
+   if( typeof(data) == "string" )
+   {
+      timers = $.parseJSON(data);
+   }
+   else if( typeof(data) == "object" )
+   {
+      timers = data; 
+   }
+   else
+   {
+      $("#list_content").html("<H1>Invalid data returned</H1>");
+      return;
+   }   
+   // console.log("loadTimerList: data: " + data);
    console.log("loadTimerList: timers.result: " + timers.result);
    if (timers.result) 
    {
@@ -414,7 +467,7 @@ success: function(data) {
             }
          }
          row +=   "<TD>" + repeateddays + "</TD>";
-         row +=   "<TD>" + ((timer.end - timer.begin)/60) + "</TD>";
+         row +=   "<TD>" + Math.ceil((timer.end - timer.begin)/60) + "</TD>";
          row +=   "<TD>" + formatTimerDate(timer.begin) + "</TD>";
          row +=   "<TD>" + formatTimerDate(timer.end) + "</TD>";
          row +=  "<TD>";
@@ -443,8 +496,21 @@ function loadBouquet(bouquet){
       async: false,
       url: "/api/getallservices" + nocache("?"),
       success: function(data) {
-         //services = $.parseJSON(data);
-         services = data;
+         console.log("loadBouquet: typeof data: " + typeof(data) );
+         if( typeof(data) == "string" )
+         {
+            services = $.parseJSON(data);
+         }
+         else if( typeof(data) == "object" )
+         {
+            services = data; 
+         }
+         else
+         {
+            $("#list_content").append("<H1>Invalid service data returned</H1>");
+            return;
+         }          
+
          if (services.result) {
             for (var id in services.services) {
                service = services.services[id];
@@ -494,7 +560,7 @@ function loadTimerListCB(response)
 <P>
 <ul>
 <!-- <li><a href='#' onclick="doAddTimer(); return false;">Add Timer</a></li>  -->
-<li><a href='#' onclick="loadTimerList(); return false;">Reload Timers List</a></li>
+<li><a href='#' onclick="reloadTimerList(); return false;">Reload Timers List</a></li>
 <li><a href='timeredit.htm'>Add Timer</a></li>
 <li><a href='#' onclick="loadBouquet('Favourites (TV)'); return false;">Load Favourites for TVGuide.xsl</a></li>
 </ul>

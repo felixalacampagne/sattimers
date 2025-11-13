@@ -1,7 +1,7 @@
 // src/app/timer-list/timer-list.component.scss
 .row {
    height: 30px;
-   margin-top: 0px; 
+   margin-top: 0px;
    margin-bottom: 0px;
    padding-top:0px;
    padding-bottom:0px;
@@ -18,15 +18,19 @@ td.nowrap
    background-color: rgba(255, 0, 0, 0.125) !important;
 }
 
-// It seems that the hidden child row counts as a row, so each visible row is an actual 
-// count of 2, so 
+.rownew
+{
+   background-color: rgba(0, 255, 0, 0.125) !important;
+}
+// It seems that the hidden child row counts as a row, so each visible row is an actual
+// count of 2, so
 // dark rows:  0, 4, 8, 12
 // light rows: 2, 6, 10, 14
 // child rows: 1, 3, 5, 7
 // except that the row index starts at 1:
 // dark:  1,        5,          9,             13,
 // light:     3,          7,           11,              15
-// child:   2,   4,    6,    8,    10,     12,     14 
+// child:   2,   4,    6,    8,    10,     12,     14
 .mat-mdc-row:nth-child(4n+1) {
    background-color: rgba(216, 215, 212, 0.288);
 }
@@ -36,7 +40,7 @@ td.nowrap
 .mat-mdc-row:nth-child(4n+3) {
    background-color: rgba(216, 215, 212, 0.125);
 }
- 
+
 
 .mat-mdc-header-row
 {
@@ -47,18 +51,18 @@ td.nowrap
 
 .mat-mdc-row
 {
-     height: 0px; 
+     height: 0px;
 }
- 
-.mat-mdc-cell, .mat-mdc-header-cell 
+
+.mat-mdc-cell, .mat-mdc-header-cell
 {
      border: none !important;
      padding: 0px 1px 0px 1px !important;
 }
- 
-.mat-column-start, 
-.mat-column-end, 
-.mat-column-sdate, 
+
+.mat-column-start,
+.mat-column-end,
+.mat-column-sdate,
 .mat-column-repeated,
 .mat-column-options
 {
@@ -75,11 +79,11 @@ td.nowrap
 }
 
 button[mat-icon-button].mat-mdc-icon-button.small {
-   zoom: 0.8 !important; 
+   zoom: 0.8 !important;
 }
 
 // margin-left causes the option buttons to be flushed to the right of the
-// expanded detail cell which is sort of the same when they are displayed in 
+// expanded detail cell which is sort of the same when they are displayed in
 // normal mode.
 .cell-option
 {
@@ -105,14 +109,14 @@ tr.timer-detail-row {
    display: grid;
    grid-template-rows: 0fr;
    grid-template-columns: 100%;
-   transition: grid-template-rows 225ms cubic-bezier(0.4, 0, 0.2, 1);   
+   transition: grid-template-rows 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.timer-detail-wrapper-expanded 
+.timer-detail-wrapper-expanded
 {
    grid-template-rows: 1fr;
 }
- 
+
 .timer-detail {
    display: flex;
    min-height: 0;
@@ -125,7 +129,7 @@ tr.timer-detail-row {
 .timer-toggle-button {
    transition: transform 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
- 
+
 .timer-toggle-button-expanded {
    transform: rotate(180deg);
 }
@@ -136,7 +140,7 @@ tr.timer-detail-row {
    margin-right: 5px;
 }
 
-// Trying to get the top right close window button to vertically align with the 
+// Trying to get the top right close window button to vertically align with the
 // title text - no way to get it to move up to a suitable position!!!!
 .mat-mdc-card-header
 {
@@ -152,7 +156,7 @@ tr.timer-detail-row {
 }
 .title-card-left
 {
-   display: inline; 
+   display: inline;
 }
 
 .title-card-right
@@ -162,14 +166,14 @@ tr.timer-detail-row {
 }
 
 // Apparently there are no standard classes for the standard color variants anymore.
-.mat-error 
+.mat-error
 {
    background-color: var(--mat-sys-error) !important;
 }
 .mat-mdc-card-actions
 {
    display:inline;
-   margin-top: 0px;      
+   margin-top: 0px;
 }
 
 .actions-card-right

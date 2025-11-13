@@ -7,6 +7,8 @@
 *.test
 *.out
 *.log
+*.rej
+*.diff
 
 # Compiled output
 /dist
