@@ -23,30 +23,52 @@
         <div class="row">
            <div class="col">
               <mat-form-field  appearance="outline" class="full-width">
-                 <mat-label>Start</mat-label>
-                 <input matInput [matDatepicker]="entrydatepicker" placeholder="dd/mm/yyyy" formControlName="starttime">
-                 <mat-datepicker-toggle matIconSuffix [for]="entrydatepicker"></mat-datepicker-toggle>
-                 <mat-datepicker #entrydatepicker></mat-datepicker>
+                 <mat-label>Start Date</mat-label>
+                 <input matInput [matDatepicker]="startdatepicker" placeholder="dd/mm/yyyy" formControlName="startdate">
+                 <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
+                 <mat-datepicker #startdatepicker></mat-datepicker>
               </mat-form-field>
+               <mat-form-field>
+                  <mat-label>Start time</mat-label>
+                  <input matInput [matTimepicker]="starttimepicker" formControlName="startdate">
+                  <mat-timepicker interval="5m" #starttimepicker/>
+                  <mat-timepicker-toggle [for]="starttimepicker" matSuffix/>
+               </mat-form-field>
            </div>
+
+         <!-- Might be worth considering just an end time, a time less than start time meaning the next day.
+              Most recordings are on the same day so very tedious to have to enter the end day.
+              Recording should probably limited to 4 or 5 hours anyway so no risk of abiguity for the end time.
+
+              Need to initialise the date/time to either the timer to be edited or 'now' (or 12:00 midday)
+           -->
            <div class="col">
               <mat-form-field  appearance="outline" class="full-width">
-                 <mat-label>Finish</mat-label>
-                 <input matInput [matDatepicker]="paydatepicker" placeholder="dd/mm/yyyy" formControlName="endtime">
-                 <mat-datepicker-toggle matIconSuffix [for]="paydatepicker"></mat-datepicker-toggle>
-                 <mat-datepicker #paydatepicker></mat-datepicker>
+                 <mat-label>End Date</mat-label>
+                 <input matInput [matDatepicker]="enddatepicker" placeholder="dd/mm/yyyy" formControlName="enddate">
+                 <mat-datepicker-toggle matIconSuffix [for]="enddatepicker"></mat-datepicker-toggle>
+                 <mat-datepicker #enddatepicker></mat-datepicker>
               </mat-form-field>
+               <mat-form-field>
+                  <mat-label>End time</mat-label>
+                  <input matInput [matTimepicker]="endtimepicker"  formControlName="enddate">
+                  <mat-timepicker interval="5m" #endtimepicker/>
+                  <mat-timepicker-toggle [for]="endtimepicker" matSuffix/>
+               </mat-form-field>
            </div>
         </div>
 
+        <!-- Day checkboxes for repeats  -->
+         <!--
         <div class="row">
            <div class="col">
               <mat-form-field  appearance="outline" class="full-width">
                  <mat-label>Days</mat-label>
-              <!-- Day checkboxes for repeats  -->
+
               </mat-form-field>
            </div>
         </div>
+      -->
         <div class="row">   <!-- channel selector -->
          <div class="col">
               <mat-form-field  appearance="outline" class="full-width">

@@ -6,12 +6,19 @@ const dateFormatJson: string = 'yyyy-MM-dd';
 const dateFormatList: string = 'dd/MM/yy';
 const dateFormatPicker: string = 'dd/MM/yyyy';
 
-@Injectable()
+@Injectable({ providedIn: 'root' } )
 export class DateformatService
 {
 datefmt : string [];
-   constructor(private datePipe: DatePipe)
-   {
+
+// It is now not PC to inject DatePipe, instead an instance must be created.
+// Obviously do NOT want a US format date but no clue how to get an normal
+// english format and no usable example in docs. In account DatePipe is
+// in @NgModule providers in app.component so I guess some sort of default
+// version is used - having the instance here doesn't work then put it in app.component.
+datePipe : DatePipe = new DatePipe('en-US');
+   constructor()  // NB Not supposed to inject DatePipe
+    {
       this.datefmt = this.getDateFormatString();
    }
 
@@ -29,6 +36,19 @@ datefmt : string [];
    {
       return this.datePipe.transform(date, dateFormatPicker) ?? '';
    }
+
+   // This is used to get time in display format
+   // The format symbols are defined here: https://angular.dev/api/common/DatePipe#custom-format-options
+   // This could probably also be used in place of 'pickerFormat' as the format string
+   // is the one which appears in the MAT_DATE_FORMATS configuration.
+   // Fork only knows why they have to make is so difficult to understand - I guess the
+   // reason they don't provide examples is they don't understand themselves what the form they mean.
+   public format(date:Date, format:string) : string
+   {
+      return this.datePipe.transform(date, format) ?? '';
+   }
+
+   // This might need to be able to handle dates with times!!!!
 
    // Unbelievable, no inbuilt Javascript, Typescript or Angular date parsing functionality
    // Seems Date.parse will handle YYYY-MM-DD and something like 'DD Mmmmmmm YYYY' OK
