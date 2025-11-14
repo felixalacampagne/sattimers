@@ -1,0 +1,15 @@
+{
+   "result": true,
+   "services":
+   [
+      {
+         "servicename": "Favourites (TV)",
+         "subservices":
+         [
+            { "servicename": "Channel One",    "serviceref": "11:111:98:987" },
+            { "servicename": "Channel Two",    "serviceref": "22:222:98:987" },
+            { "servicename": "Channel Three",  "serviceref": "33:33:98:987" }
+         ]
+      }
+   ]
+}

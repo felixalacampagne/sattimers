@@ -12,6 +12,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { DateformatService } from '../service/dateformat.service';
 import { Timer } from '../model/timer.model';
 import { Channel } from '../model/channel.model';
+import { add, roundToNearestMinutes } from "date-fns"; // requires 'npm install date-fns --save'
+import { OWITimersService } from '../service/owitimers.service';
+import { Logging } from '../logging-class';
 
 // FormatingDateAdapter and ISO_DATE_FORMAT (together with DateformatService) copied from 'account'.
 // It seems there is a vast degree of uncertaintity regarding what is required to make date parsing
@@ -96,7 +99,9 @@ imports: [MatCardModule,
   styleUrl: './timer-edit.component.scss'
 })
 
-export class TimerEditComponent {
+export class TimerEditComponent extends Logging {
+   readonly fn  = "TimerEditCmp";
+
    @Input() origTimer: Timer | undefined;
    @Output() public submittedEvent = new EventEmitter();
 
@@ -131,12 +136,12 @@ export class TimerEditComponent {
       ];
 
    editForm : FormGroup;
-   channels : Channel[] = [
-      new Channel("Chan1", "1111189;981;98;89;;981;"),
-      new Channel("Chan2", "987;98:978;987;987;98;;;897")
-   ];
-   constructor()
+   channels : Channel[] = [];
+   constructor(
+      private owitimerSvc: OWITimersService
+   )
    {
+      super();
       this.editForm = new FormGroup({
          startdate: new FormControl('', Validators.required),
          enddate: new FormControl('', Validators.required),
@@ -145,15 +150,22 @@ export class TimerEditComponent {
          channelid: new FormControl(this.channels[0], Validators.required)
        });
    }
+
    ngOnInit()
    {
       let dnow = new Date();
-
+      // see https://date-fns.org/v4.1.0/docs for the date functions
+      dnow = roundToNearestMinutes(dnow, {nearestTo: 5, roundingMethod: 'floor'});
+      let dend = add(dnow, {hours:1, minutes:5});
       this.editForm.patchValue({
          startdate: dnow,
-         enddate: dnow
+         enddate: dend
       });
+
+      this.loadChannels();  // The dropdown appears to populate itself automatically, at least when loading from assets!
    }
+
+
    // I think this just echoes the setting of the checkbox into the repdays array.
    // Eventually the repdays array needs to be mapped onto a single integer value.
    // Also the settings of the checkboxes need to be initialised to the input repeated value
@@ -176,12 +188,12 @@ export class TimerEditComponent {
 
    updateStart()
    {
-      console.log("updateStart: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
+      super.log("updateStart: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
    }
 
    updateEnd()
    {
-      console.log("updateEnd: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
+      super.log("updateEnd: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
    }
 
    public onSubmit()
@@ -190,5 +202,25 @@ export class TimerEditComponent {
 
    public onCancel()
    {
+   }
+
+   loadChannels()
+   {
+      console.log(super.fmsg("loadChannels: Starting"));
+
+      this.owitimerSvc.getChannelList().subscribe({
+         next: (res) => {
+            console.log(super.fmsg("loadChannels: next"));
+            this.channels = res;
+         },
+         error: (err) => {
+            console.log(super.fmsg("loadChannels: Error: %s"), JSON.stringify(err, null, 2));
+         },
+         complete: () => {
+            // console.log("TimerListComponent.loadTimers: completed");
+         }
+       });
+
+      console.log(super.fmsg("loadChannels: Finished"));
    }
 }

@@ -6,12 +6,15 @@ import { map } from 'rxjs/operators';
 import { TimerList } from '../model/timerlist.model';
 import { environment } from '../../environments/environment';
 import { Timer } from '../model/timer.model';
+import { Channel } from '../model/channel.model';
+import { ChannelList, Service } from '../model/channellist.model';
+import { Logging } from '../logging-class';
 
 @Injectable({
   providedIn: 'root'
 })
-export class OWITimersService 
-{
+export class OWITimersService extends Logging {
+   readonly fn  = "OWITimersSvc";
    private serverhost : string = "";
    private apiurl : string ='';
    private apiapp : string = "";
@@ -19,10 +22,12 @@ export class OWITimersService
    private timereditsvc : string ="timeredit";  // this is a page
    private timerdeletesvc : string = "timerdelete"; // this is an api call
    private timeraddsvc = "timeradd";                // this is an api call
+   private channelsvc = "getallservices";           // api call to list channels
 
 
-   constructor(private http : HttpClient) 
-   { 
+   constructor(private http : HttpClient)
+   {
+      super();
       // If host value is not given by environment then should assume api
       // is on same server as frontend. Frontend server can be obtained from
       // window.location.hostname, window.location.pathname
@@ -35,19 +40,19 @@ export class OWITimersService
             this.serverhost = environment.api_host;
       }
       else
-      {    
+      {
          this.serverhost = window.location.origin;
-      }   
-      this.apiapp = environment.folder + environment.api_app;   
+      }
+      this.apiapp = environment.folder + environment.api_app;
       this.apiurl = this.serverhost + this.apiapp
-      console.log("OWITimersService: API url: " + this.apiurl);
+      super.log("<init>: API url: %s", this.apiurl);
    }
 
    getTimerList() : Observable<TimerList>
    {
       let url : string;
       url = this.apiurl + this.timerlistsvc  + this.nocache("?");;
-      // this fails when the client pages are not served from the sat box: CORS shirt designed to prevent 
+      // this fails when the client pages are not served from the sat box: CORS shirt designed to prevent
       // normal users from doing anything useful with the code.
       // The sat box server does actually set the allowed origin to be anything ('*') but apparently
       // the browser deliberatly rejects this as a valid response, even though it is a valid response.
@@ -56,7 +61,7 @@ export class OWITimersService
       // to access a 'public' web api.
       return this.http.get(url).pipe( map((res:any) => res));
    }
-  
+
    deleteTimer(timer : Timer) : Observable<String>
    {
       let url : string;
@@ -69,7 +74,7 @@ export class OWITimersService
       params = params + this.nocache("&");
 
       url = url + "?" + params;
-      return this.http.get(url).pipe( map((res:any) => res));   
+      return this.http.get(url).pipe( map((res:any) => res));
    }
 
    addTimer(timer : Timer) : Observable<string>
@@ -108,15 +113,40 @@ export class OWITimersService
       owiparams+= "&afterevent=0";
 
       url += "?" + owiparams + this.nocache("&");
-      return this.http.get(url).pipe( map((res:any) => res));   
+      return this.http.get(url).pipe( map((res:any) => res));
    }
 
    nocache(pfx : string)
    {
       // Can't simply append this to every URL as the prefix depends on
-      // whether there are already parameters. So simpler to get the caller to 
+      // whether there are already parameters. So simpler to get the caller to
       // figure it out
       var nocache=new Date().getTime();
       return pfx + "nocache=" + nocache;
-   }  
+   }
+
+   getChannelList() : Observable<Channel[]>
+   {
+      let url : string;
+
+      url = this.apiurl + this.channelsvc  + this.nocache("?");;
+
+      return this.http.get(url).pipe( map((res:any) =>
+      {
+         let channels : Channel[] = [];
+         let bouquet : string = "Favourites (TV)";
+         console.log(super.fmsg("getChannelList: result: %s"), JSON.stringify(res));
+         let services : ChannelList = res;
+         for (var id in services.services)
+         {
+            let service : Service = services.services[id];
+            if(service.servicename == bouquet)
+            {
+               channels = service.subservices;
+               break;
+            }
+         }
+         return channels;
+      }));
+   }
 }
