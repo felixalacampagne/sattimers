@@ -24,13 +24,13 @@
            <div class="col">
               <mat-form-field  appearance="outline" class="full-width">
                  <mat-label>Start Date</mat-label>
-                 <input matInput [matDatepicker]="startdatepicker" placeholder="dd/mm/yyyy" formControlName="startdate">
+                 <input matInput [matDatepicker]="startdatepicker" (change)="updateStart()" placeholder="dd/mm/yyyy" formControlName="startdate">
                  <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
                  <mat-datepicker #startdatepicker></mat-datepicker>
               </mat-form-field>
                <mat-form-field>
                   <mat-label>Start time</mat-label>
-                  <input matInput [matTimepicker]="starttimepicker" formControlName="startdate">
+                  <input matInput [matTimepicker]="starttimepicker" (change)="updateStart()" formControlName="startdate">
                   <mat-timepicker interval="5m" #starttimepicker/>
                   <mat-timepicker-toggle [for]="starttimepicker" matSuffix/>
                </mat-form-field>
@@ -45,13 +45,13 @@
            <div class="col">
               <mat-form-field  appearance="outline" class="full-width">
                  <mat-label>End Date</mat-label>
-                 <input matInput [matDatepicker]="enddatepicker" placeholder="dd/mm/yyyy" formControlName="enddate">
+                 <input matInput [matDatepicker]="enddatepicker" (change)="updateEnd()" placeholder="dd/mm/yyyy" formControlName="enddate">
                  <mat-datepicker-toggle matIconSuffix [for]="enddatepicker"></mat-datepicker-toggle>
                  <mat-datepicker #enddatepicker></mat-datepicker>
               </mat-form-field>
                <mat-form-field>
                   <mat-label>End time</mat-label>
-                  <input matInput [matTimepicker]="endtimepicker"  formControlName="enddate">
+                  <input matInput [matTimepicker]="endtimepicker" (change)="updateEnd()" formControlName="enddate">
                   <mat-timepicker interval="5m" #endtimepicker/>
                   <mat-timepicker-toggle [for]="endtimepicker" matSuffix/>
                </mat-form-field>
@@ -59,16 +59,16 @@
         </div>
 
         <!-- Day checkboxes for repeats  -->
-         <!--
         <div class="row">
            <div class="col">
-              <mat-form-field  appearance="outline" class="full-width">
-                 <mat-label>Days</mat-label>
-
-              </mat-form-field>
+               <mat-label>Repeat</mat-label>
+               @for (repday of repdays; track repday; let i = $index)
+               {
+                  <mat-checkbox [checked]="repday.repeaton" (change)="update($event.checked, i)">{{repday.name}}</mat-checkbox>
+               }
            </div>
         </div>
-      -->
+
         <div class="row">   <!-- channel selector -->
          <div class="col">
               <mat-form-field  appearance="outline" class="full-width">
