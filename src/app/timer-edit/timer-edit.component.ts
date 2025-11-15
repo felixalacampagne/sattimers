@@ -14,8 +14,8 @@ import { Timer } from '../model/timer.model';
 import { Channel } from '../model/channel.model';
 import { add, roundToNearestMinutes } from "date-fns"; // requires 'npm install date-fns --save'
 import { OWITimersService } from '../service/owitimers.service';
-import { Logging } from '../logging-class';
 
+const ln  = "TimerEditCmp.";
 // FormatingDateAdapter and ISO_DATE_FORMAT (together with DateformatService) copied from 'account'.
 // It seems there is a vast degree of uncertaintity regarding what is required to make date parsing
 // work as a normal person might expect.
@@ -41,24 +41,14 @@ export class FormatingDateAdapter extends NativeDateAdapter
       let fmt : string = String(displayFormat);
       ret = this.dateFmt.format(date, fmt)
       //console.log("FormatingDateAdapter.format: date=" + date + " displayFormat=" + fmt + " return:" + ret);
-      // if( "" + displayFormat == "HH:mm")
-      // {
-      //    ret = this.dateFmt.format(date, ""+displayFormat);
-      //    // console.log("FormatingDateAdapter.format: date=" + date + " displayFormat=" + displayFormat + " return:" + ret);
-      // }
-      // else
-      // {
-      //    ret = this.dateFmt.pickerFormat(date) ?? '';
-      // }
-      // //console.log("FormatingDateAdapter.format: ret=" + ret);
       return ret;
    }
 }
 
 
 
-// A MAT_DATE_FORMATS MUST be provided but in fact it isn't used by any
-// of the default angular code and it isn't used by my code either.
+// A MAT_DATE_FORMATS MUST be provided. It appears that the dateInput/timeInput formats described here
+// are passed to the FormatingDateAdapter format method by the date/timepickers.
 export const ISO_DATE_FORMAT : MatDateFormats = {
    parse: {
      dateInput: 'dd-MM-yyyy',
@@ -99,40 +89,19 @@ imports: [MatCardModule,
   styleUrl: './timer-edit.component.scss'
 })
 
-export class TimerEditComponent extends Logging {
-   readonly fn  = "TimerEditCmp";
-
+export class TimerEditComponent {
    @Input() origTimer: Timer | undefined;
    @Output() public submittedEvent = new EventEmitter();
 
-   // This is from https://material.angular.dev/components/checkbox/overview
-   // Don't need the days to be nested but don't know how to specify the signal thing to be
-   // an array of repeat days (or what the signal is actually for!!)
-   // The Angular docs example uses a signal to wrap the repdays equivalent, except in the example
-   // it is a single array containing an object with a nested array. I don't need a nested array,
-   // just a simple array. Replacing the object with an array in the signal statement, ie. signal<RepeatDay[]>
-   // compiles OK and appears to display OK but clicking on a checkbox gives an incomprehensible error
-   // in the console which appears to be related to the for loop inthe HTML which is used to build the display.
-   // Needless to say the documentation contains nothing regarding this 'signal' or how it might be used in
-   // a more realistic scenario where just an array is required. Since the purpose of the signal is
-   // a complete mystery to me, it is not required for the update function to be called, I have removed
-   // it and now the console errors have gone away.
-
-
-   // readonly repdays = signal<RepeatDay[]>(
-   // when signal<[]> is used HTML loop to build the checkbox display
-   // @for (repday of repdays(); track repday; let i = $index)
-   // gives an error when a checkbox is clicked. The solution appears to be to
-   // remove the signal, this is no loss as it serves no known purpose.
    readonly repdays =
       [
-         { name: 'Mo', repeaton: false },
-         { name: 'Tu', repeaton: false },
-         { name: 'We', repeaton: false },
-         { name: 'Th', repeaton: false },
-         { name: 'Fr', repeaton: false },
-         { name: 'Sa', repeaton: false },
-         { name: 'Su', repeaton: false }
+         { name: 'Mo', bit:1,  repeaton: false },
+         { name: 'Tu', bit:2,  repeaton: false },
+         { name: 'We', bit:4,  repeaton: false },
+         { name: 'Th', bit:8,  repeaton: false },
+         { name: 'Fr', bit:16, repeaton: false },
+         { name: 'Sa', bit:32, repeaton: false },
+         { name: 'Su', bit:64, repeaton: false }
       ];
 
    editForm : FormGroup;
@@ -141,7 +110,6 @@ export class TimerEditComponent extends Logging {
       private owitimerSvc: OWITimersService
    )
    {
-      super();
       this.editForm = new FormGroup({
          startdate: new FormControl('', Validators.required),
          enddate: new FormControl('', Validators.required),
@@ -163,41 +131,45 @@ export class TimerEditComponent extends Logging {
       });
 
       this.loadChannels();  // The dropdown appears to populate itself automatically, at least when loading from assets!
+      //this.mapRepeatedToDays(3);
    }
 
 
-   // I think this just echoes the setting of the checkbox into the repdays array.
-   // Eventually the repdays array needs to be mapped onto a single integer value.
-   // Also the settings of the checkboxes need to be initialised to the input repeated value
-
-
-   update(repeaton: boolean, index?: number)
+   updateRepeat(repeaton: boolean, index?: number)
    {
-      // this.repdays.update(repday => {
-      //    if(index)
-      //    {
-      //       repday[index].repeaton = repeaton;
-      //    }
-      //    return {...repday};
-      // });
-      if(index)
+      if(index != undefined)
       {
          this.repdays[index].repeaton = repeaton;
+         //console.log(ln + "updateRepeat: repeated:%d", this.mapDaysToRepeated());
       }
-    }
-
-   updateStart()
-   {
-      super.log("updateStart: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
    }
 
+   // Currently not called
+   updateStart()
+   {
+      console.log(ln + "updateStart: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
+   }
+
+   // Currently not called
    updateEnd()
    {
-      super.log("updateEnd: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
+      console.log(ln + "updateEnd: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
    }
 
    public onSubmit()
    {
+      let t : Timer = this.mapFormToTimer();
+      this.owitimerSvc.addTimer(t).subscribe({
+         next: (res) => {
+            console.log(ln + "onSubmit: next: result: %s", JSON.stringify(res));
+         },
+         error: (err) => {
+            console.log(ln + "onSubmit: Error: %s", JSON.stringify(err, null, 2));
+         },
+         complete: () => {
+            console.log(ln + "onSubmit: completed");
+         }
+       });
    }
 
    public onCancel()
@@ -206,21 +178,73 @@ export class TimerEditComponent extends Logging {
 
    loadChannels()
    {
-      console.log(super.fmsg("loadChannels: Starting"));
+      console.log(ln + "loadChannels: Starting");
 
       this.owitimerSvc.getChannelList().subscribe({
          next: (res) => {
-            console.log(super.fmsg("loadChannels: next"));
+            console.log(ln + "loadChannels: next");
             this.channels = res;
          },
          error: (err) => {
-            console.log(super.fmsg("loadChannels: Error: %s"), JSON.stringify(err, null, 2));
+            console.log(ln + "loadChannels: Error: %s"), JSON.stringify(err, null, 2);
          },
          complete: () => {
             // console.log("TimerListComponent.loadTimers: completed");
          }
        });
 
-      console.log(super.fmsg("loadChannels: Finished"));
+      console.log(ln + "loadChannels: Finished");
    }
+
+   mapRepeatedToDays(rep : number)
+   {
+      // algorithm from ajax version.
+      // TODO: use the bit values to determine if the day is repeated
+      // so not dependant on the order of the days in the list.
+      let flags : number = rep;
+      for (var i=0; i<7; i++)
+      {
+         this.repdays[i].repeaton = ((flags & 1)==1);
+         flags >>= 1;
+      }
+   }
+
+   mapDaysToRepeated() : number
+   {
+      let repeats : number = 0;
+      for (var i=0; i<7; i++)
+      {
+         if(this.repdays[i].repeaton)
+         {
+            repeats = repeats | this.repdays[i].bit;
+         }
+      }
+      return repeats;
+   }
+
+
+   mapFormToTimer() : Timer
+   {
+      let timer : Timer = new Timer();
+      let startd : Date = new Date(this.editForm.value.startdate);
+      let endd : Date = new Date(this.editForm.value.enddate);
+      console.log(ln + "mapFormToTimer: channelid: %s", JSON.stringify(this.editForm.value.channelid));
+
+      timer.serviceref = this.editForm.value.channelid.servicereference;
+      timer.servicename = this.editForm.value.channelid.servicename;
+      timer.name = this.editForm.value.timername;
+      timer.repeated = this.mapDaysToRepeated();
+      timer.begin = startd.getTime();
+      timer.end = endd.getTime();
+      timer.sunx = startd.getTime();
+      timer.eunx = endd.getTime();
+
+      // No clue if this is actually needed
+      // timer.refold: any;
+      // timer.startold: any;
+      // timer.stopold: any;
+      console.log(ln + "mapFormToTimer: timer: %s", JSON.stringify(timer));
+      return timer;
+   }
+
 }

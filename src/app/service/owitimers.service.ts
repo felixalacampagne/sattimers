@@ -8,13 +8,14 @@ import { environment } from '../../environments/environment';
 import { Timer } from '../model/timer.model';
 import { Channel } from '../model/channel.model';
 import { ChannelList, Service } from '../model/channellist.model';
-import { Logging } from '../logging-class';
+
+const ln  = "OWITimersSvc.";
 
 @Injectable({
   providedIn: 'root'
 })
-export class OWITimersService extends Logging {
-   readonly fn  = "OWITimersSvc";
+export class OWITimersService {
+
    private serverhost : string = "";
    private apiurl : string ='';
    private apiapp : string = "";
@@ -27,7 +28,6 @@ export class OWITimersService extends Logging {
 
    constructor(private http : HttpClient)
    {
-      super();
       // If host value is not given by environment then should assume api
       // is on same server as frontend. Frontend server can be obtained from
       // window.location.hostname, window.location.pathname
@@ -45,7 +45,7 @@ export class OWITimersService extends Logging {
       }
       this.apiapp = environment.folder + environment.api_app;
       this.apiurl = this.serverhost + this.apiapp
-      super.log("<init>: API url: %s", this.apiurl);
+      console.log(ln + "<init>: API url: %s", this.apiurl);
    }
 
    getTimerList() : Observable<TimerList>
@@ -79,14 +79,13 @@ export class OWITimersService extends Logging {
 
    addTimer(timer : Timer) : Observable<string>
    {
-      let url : string;
-      let params : string
-      url = this.apiurl + this.timeraddsvc;
+      let url : string =  this.apiurl + this.timeraddsvc;
 
-      params = "sRef=" + timer.serviceref;
-      params = params + "&begin=" + timer.begin;
-      params = params + "&end=" + timer.end;
-      params = params + this.nocache("&");
+      // let params : string
+      // params = "sRef=" + timer.serviceref;
+      // params = params + "&begin=" + timer.begin;
+      // params = params + "&end=" + timer.end;
+      // params = params + this.nocache("&");
 
       var owiBegin = timer.begin/1000;
       var owiEnd = timer.end/1000;
@@ -97,7 +96,7 @@ export class OWITimersService extends Logging {
       owiparams+= "&name=" + escape("" + timer.name);
       owiparams+= "&repeated=" + timer.repeated;
 
-      if( timer.refold == "undefined" )
+      if( timer.refold == undefined )
       {
          owiparams+= "&channelOld=" + escape("" + timer.serviceref);
          owiparams+= "&beginOld=" + owiBegin;
@@ -135,7 +134,7 @@ export class OWITimersService extends Logging {
       {
          let channels : Channel[] = [];
          let bouquet : string = "Favourites (TV)";
-         console.log(super.fmsg("getChannelList: result: %s"), JSON.stringify(res));
+         console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
          let services : ChannelList = res;
          for (var id in services.services)
          {

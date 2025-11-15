@@ -64,7 +64,7 @@
                <mat-label>Repeat</mat-label>
                @for (repday of repdays; track repday; let i = $index)
                {
-                  <mat-checkbox [checked]="repday.repeaton" (change)="update($event.checked, i)">{{repday.name}}</mat-checkbox>
+                  <mat-checkbox [checked]="repday.repeaton" (change)="updateRepeat($event.checked, i)">{{repday.name}}</mat-checkbox>
                }
            </div>
         </div>
@@ -75,7 +75,7 @@
                  <mat-label>Channel</mat-label>
                  <mat-select placeholder="Nothing" formControlName="channelid">
                     @for (chan of channels; track chan) {
-                    <mat-option [value]="chan.serviceref">{{ chan.servicename }}</mat-option>
+                    <mat-option [value]="chan">{{ chan.servicename }}</mat-option>
                     }
                  </mat-select>
               </mat-form-field>
