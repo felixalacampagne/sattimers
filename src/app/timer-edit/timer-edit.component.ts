@@ -15,6 +15,7 @@ import { Channel } from '../model/channel.model';
 import { add, roundToNearestMinutes } from "date-fns"; // requires 'npm install date-fns --save'
 import { OWITimersService } from '../service/owitimers.service';
 import { TimerUtilsService } from '../service/timer-utils.service';
+import { lastValueFrom, tap } from 'rxjs';
 
 const ln  = "TimerEditCmp.";
 // FormatingDateAdapter and ISO_DATE_FORMAT (together with DateformatService) copied from 'account'.
@@ -153,10 +154,34 @@ const name = currentNav.extras.state.name;
          startdate: dnow,
          enddate: dend
       });
-      this.origTimer = this.utils.getTimerToEdit();
-      this.loadChannels();  // The dropdown appears to populate itself automatically, at least when loading from assets!
+      this.initForm();
    }
 
+   // async, await, lastValueFrom and pipe/tap allow the HTTP response
+   // to be loaded synchronously which makes the code easier to read as
+   // the flow is not buried in inumerable subscribe blocks.
+   // Not too sure how it works or what the downsides might be but so far
+   // the evidence is that it does just what I need...
+   async initForm()
+   {
+      console.log(ln + "initForm: start");
+      this.origTimer = this.utils.getTimerToEdit();
+
+      console.log(ln + "initForm: loadchans pre-load: %d", this.channels.length);
+      await this.loadChannels();
+      console.log(ln + "initForm: loadchans post-load: %d", this.channels.length);
+      this.mapTimerToForm(this.origTimer);
+      console.log(ln + "initForm: done");
+   }
+
+   async loadChannels()
+   {
+      return await lastValueFrom(this.owitimerSvc.getChannelList()
+         .pipe(tap(res => {
+            console.log(ln + "loadChannels: pipe-tap");
+            this.channels = res;
+         })));
+   }
 
    updateRepeat(repeaton: boolean, index?: number)
    {
@@ -199,41 +224,13 @@ const name = currentNav.extras.state.name;
    {
    }
 
-   loadChannels()
-   {
-      console.log(ln + "loadChannels: Starting");
 
-      this.owitimerSvc.getChannelList().subscribe({
-         next: (res) => {
-            console.log(ln + "loadChannels: next");
-            this.channels = res;
-
-            // Sucks to do this here but no idea how to get loadChannels to only
-            // return when the channels are loaded so other initialization can be
-            // done in the initialization method.
-            this.mapTimerToForm(this.origTimer);
-         },
-         error: (err) => {
-            console.log(ln + "loadChannels: Error: %s"), JSON.stringify(err, null, 2);
-         },
-         complete: () => {
-            // console.log("TimerListComponent.loadTimers: completed");
-         }
-       });
-
-      console.log(ln + "loadChannels: Finished");
-   }
 
    mapRepeatedToDays(rep : number)
    {
-      // algorithm from ajax version.
-      // TODO: use the bit values to determine if the day is repeated
-      // so not dependant on the order of the days in the list.
-      let flags : number = rep;
       for (var i=0; i<7; i++)
       {
-         this.repdays[i].repeaton = ((flags & 1)==1);
-         flags >>= 1;
+         this.repdays[i].repeaton = ((this.repdays[i].bit & rep) != 0);
       }
    }
 

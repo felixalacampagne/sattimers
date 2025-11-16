@@ -21,12 +21,12 @@ gMonths  : string [] = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","O
    public setTimerToEdit(timer : Timer)
    {
       this.timerToEdit = timer;
-      console.log(ln+"setTimerToEdit: timer: %s", JSON.stringify(this.timerToEdit));
+      // console.log(ln+"setTimerToEdit: timer: %s", JSON.stringify(this.timerToEdit));
    }
 
    public getTimerToEdit() : Timer | undefined
    {
-      console.log(ln+"getTimerToEdit: timer: %s", JSON.stringify(this.timerToEdit));
+      // console.log(ln+"getTimerToEdit: timer: %s", JSON.stringify(this.timerToEdit));
       return this.timerToEdit;
    }
 
@@ -225,7 +225,7 @@ public parseHttpParamsToTimer(params: HttpParams) : Timer
    if((params.get("sunx") !== undefined) && (params.get("eunx") !== undefined) )
    {
       // This is the way the EPG sends the start/stop/times
-      console.log("getTimerFromParams: Using unix date values");
+      // console.log("getTimerFromParams: Using unix date values");
       sunx = Number(params.get("sunx"));
       eunx = Number(params.get("eunx"));
    }
