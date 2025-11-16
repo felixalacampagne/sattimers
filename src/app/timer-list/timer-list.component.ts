@@ -207,8 +207,9 @@ dialog = inject(MatDialog);
 
    edittimer(timer: Timer)
    {
+      this.utils.setTimerToEdit(timer);
+      this.router.navigate(["timeredit"]);
       // window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self");
-      throw new Error('Method not implemented.');
    }
 
    deletetimer(timer: Timer)

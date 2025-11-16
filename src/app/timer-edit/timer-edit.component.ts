@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injectable, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Injectable, input, Input, Output, signal } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +14,7 @@ import { Timer } from '../model/timer.model';
 import { Channel } from '../model/channel.model';
 import { add, roundToNearestMinutes } from "date-fns"; // requires 'npm install date-fns --save'
 import { OWITimersService } from '../service/owitimers.service';
+import { TimerUtilsService } from '../service/timer-utils.service';
 
 const ln  = "TimerEditCmp.";
 // FormatingDateAdapter and ISO_DATE_FORMAT (together with DateformatService) copied from 'account'.
@@ -90,6 +91,27 @@ imports: [MatCardModule,
 })
 
 export class TimerEditComponent {
+/*
+Aaaaggghhhh Angular still really sucks for passing data between routed
+pages. One would imagine that the @Input command would be for exactly
+that purpose but, of course, it isn't. It appears to be only useful
+when a component is displayed as part of another component in the same
+page.
+Routes can be used to crudely pass very simple parameters as part of the URL
+used to display a page. There is potentially a way to pass complete objects
+but it sounds like the most monumental kludge. When data passing is talked
+about (SO etc.) the supposed answer is to use a service - but I can't
+really see how this is supposed to work... Maybe just a fancy name for a
+singleton with a timer field that is set by the caller page and read by the
+called page. Maybe that's what I'll try.
+
+const currentNav = this.router.getCurrentNavigation();
+const id = currentNav.extras.state.id;
+const name = currentNav.extras.state.name;
+*/
+
+
+
    @Input() origTimer: Timer | undefined;
    @Output() public submittedEvent = new EventEmitter();
 
@@ -107,7 +129,8 @@ export class TimerEditComponent {
    editForm : FormGroup;
    channels : Channel[] = [];
    constructor(
-      private owitimerSvc: OWITimersService
+      private owitimerSvc: OWITimersService,
+      private utils : TimerUtilsService
    )
    {
       this.editForm = new FormGroup({
@@ -117,6 +140,7 @@ export class TimerEditComponent {
          // repeats: new FormControl('', Validators.required),
          channelid: new FormControl(this.channels[0], Validators.required)
        });
+
    }
 
    ngOnInit()
@@ -129,9 +153,8 @@ export class TimerEditComponent {
          startdate: dnow,
          enddate: dend
       });
-
+      this.origTimer = this.utils.getTimerToEdit();
       this.loadChannels();  // The dropdown appears to populate itself automatically, at least when loading from assets!
-      //this.mapRepeatedToDays(3);
    }
 
 
@@ -184,6 +207,11 @@ export class TimerEditComponent {
          next: (res) => {
             console.log(ln + "loadChannels: next");
             this.channels = res;
+
+            // Sucks to do this here but no idea how to get loadChannels to only
+            // return when the channels are loaded so other initialization can be
+            // done in the initialization method.
+            this.mapTimerToForm(this.origTimer);
          },
          error: (err) => {
             console.log(ln + "loadChannels: Error: %s"), JSON.stringify(err, null, 2);
@@ -222,7 +250,6 @@ export class TimerEditComponent {
       return repeats;
    }
 
-
    mapFormToTimer() : Timer
    {
       let timer : Timer = new Timer();
@@ -239,12 +266,47 @@ export class TimerEditComponent {
       timer.sunx = startd.getTime();
       timer.eunx = endd.getTime();
 
-      // No clue if this is actually needed
-      // timer.refold: any;
-      // timer.startold: any;
-      // timer.stopold: any;
+      if(this.origTimer != undefined)
+      {
+         timer.refold = this.origTimer.serviceref;
+         timer.startold = this.origTimer.begin;
+         timer.stopold = this.origTimer.end;
+      }
       console.log(ln + "mapFormToTimer: timer: %s", JSON.stringify(timer));
       return timer;
    }
 
+   mapTimerToForm(timer : Timer | undefined)
+   {
+     if(timer)
+     {
+         let sd = this.utils.getDateFromSTBValue(timer.begin);
+         let ed = this.utils.getDateFromSTBValue(timer.end);
+
+         // MUST use one of the Channel objects from the array, creating new one
+         // with same values does not work!
+         // let chan : Channel = new Channel(timer.servicename, timer.serviceref);
+         let chan : Channel | undefined = this.mapTimerToChannel(timer);
+         console.log(ln + "mapTimerToForm: chan:%s", JSON.stringify(chan));
+         this.editForm.setValue({
+            channelid : chan,
+            timername : timer.name,
+            startdate : sd,
+            enddate : ed
+            });
+         this.mapRepeatedToDays(timer.repeated);
+
+      }
+   }
+
+   mapTimerToChannel(timer : Timer | undefined) : Channel | undefined
+   {
+      let chan : Channel | undefined = undefined;
+      if(timer != undefined)
+      {
+         // console.log(ln + "mapTimerToChannel: channels: %s", JSON.stringify(this.channels));
+         chan = this.channels.find(c => c.servicereference == timer.serviceref);
+      }
+      return chan;
+   }
 }

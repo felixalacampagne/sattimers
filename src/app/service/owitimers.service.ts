@@ -134,7 +134,7 @@ export class OWITimersService {
       {
          let channels : Channel[] = [];
          let bouquet : string = "Favourites (TV)";
-         console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
+         // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
          let services : ChannelList = res;
          for (var id in services.services)
          {

@@ -4,18 +4,36 @@ import { Timer } from "../model/timer.model";
 import { HttpParams } from "@angular/common/http";
 import { Params } from "@angular/router";
 
+const ln = "TimerUtilsSvc.";
 
-@Injectable({
-   providedIn: 'root'
- })
- export class TimerUtilsService
- {
+@Injectable({ providedIn: 'root' })
+export class TimerUtilsService
+{
+private timerToEdit : Timer | undefined;
 
 gDaysShort : string [] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 gMonths  : string [] = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
    constructor()
    {
+   }
+
+   public setTimerToEdit(timer : Timer)
+   {
+      this.timerToEdit = timer;
+      console.log(ln+"setTimerToEdit: timer: %s", JSON.stringify(this.timerToEdit));
+   }
+
+   public getTimerToEdit() : Timer | undefined
+   {
+      console.log(ln+"getTimerToEdit: timer: %s", JSON.stringify(this.timerToEdit));
+      return this.timerToEdit;
+   }
+
+   // Need to do this to be able to add new timer
+   public clearTimerToEdit()
+   {
+      this.timerToEdit = undefined;
    }
 
 // Format date for display in the timer list, ie. Ddd DD-MM  (no year)
@@ -285,4 +303,9 @@ titlePrefix() : string {
    return hostname;
 }
 
+
+public getDateFromSTBValue(stbval : number)
+{
+   return new Date(stbval * 1000);
+}
 }
