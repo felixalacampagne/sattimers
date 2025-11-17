@@ -10,6 +10,17 @@ patch --ignore-whitespace -p1 < patch.diff
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.2.
 
+16 Nov 2025 Things have progressed to the stage where I have a working, presentable timer list with 
+usable delete on the phone, which is what I was most interested in. Thus the angular version of
+sattimers is slowly replacing the old Ajax version. Timer edit is still a work in progress - adding a timer
+has been shown to work, and the edit page can be opened a timer details from the list. The edit page UI is 
+somewhat more complex than the list and while trying to bend the components into something vaugely usable I've once again hit the problem that Google searches goto a page for a different version of Angular and switching to the correct version looses the relevant page - you'd think that providers of a UI library would have a better idea of how to provide a UI... mind you the stuff they provide is so convoluted and difficult to use I guess that maybe they don't. 
+
+So, before descending once more into the rabbit hole of trying to make a usable UI using Angular and Material, I have decided that the upgrade to the current default version of the angular documentation is
+required to stop me becoming demented trying to figure out how to get things to work. 
+
+Therefore this version in main is not a fully working of the timer edit, rather a pre-Angular update version...
+
 01 Dec 2024 Having realised that the new pages will have to be served from the SR servers I needed a
 way to test locally using static pages before copying everything to the SR boxes. You guessed it, the continuous
 improvers have been at it again and with Angular 19 the 'src/assets' folder which contains the static test data
@@ -89,3 +100,4 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+

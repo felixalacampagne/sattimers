@@ -80,8 +80,11 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <!-- timer.state = 2: class rowinprogress (green) -->
-      <tr [class.rowinprogress]='row.state==2' [class.rownew]="row.state==3"
+      <!-- timer.state = 2: class rowinprogress (green)
+           stb returns state=3 for finished timers
+           state=33 pseudo state indicating a new timer determined by comparison to the URL parameters
+       -->
+      <tr [class.rowinprogress]='row.state==2' [class.rownew]="row.state==33"
            mat-row *matRowDef="let row; columns: displayedColumns; let even = even"></tr>
       <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="timer-detail-row"></tr>
    </table>

@@ -152,13 +152,13 @@ dialog = inject(MatDialog);
                         // console.log("TimerListComponent.loadTimers: found newTimer: state:" + t.state );
                         if(t.state == 0)
                         {
-                           t.state = 3;
+                           t.state = 33;
+                           // console.log("TimerListComponent.loadTimers: found newTimer: set new state:" + t.state );
                         }
                         return true;
                      }
                      return false;
                   })
-
                }
             }
             else
@@ -207,8 +207,9 @@ dialog = inject(MatDialog);
 
    edittimer(timer: Timer)
    {
+      this.utils.setTimerToEdit(timer);
+      this.router.navigate(["timeredit"]);
       // window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self");
-      throw new Error('Method not implemented.');
    }
 
    deletetimer(timer: Timer)

@@ -13,4 +13,8 @@ export class Timer
    public refold: any;
    public startold: any;
    public stopold: any;
+
+   // WARNING: Cannot put function here, eg. to convert the number to Dates
+   // because the Timer objects created when data is recieved via HTTP
+   // request do not have the the functions defined!!!!
 }
