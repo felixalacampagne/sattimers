@@ -193,15 +193,17 @@ const name = currentNav.extras.state.name;
    }
 
    // Currently not called
-   updateStart()
+   updateStart(event : any)
    {
-      console.log(ln + "updateStart: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
+      console.log(ln + "updateStart: start:" + this.editForm.value.startdate
+         + " end:" + this.editForm.value.enddate
+         + " event: " + JSON.stringify(event));
    }
 
    // Currently not called
-   updateEnd()
+   updateEnd(event : any)
    {
-      console.log(ln + "updateEnd: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate);
+      console.log(ln + "updateEnd: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate + " event: " + JSON.stringify(event));
    }
 
    public onSubmit()

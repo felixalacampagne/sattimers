@@ -59,7 +59,33 @@ export class OWITimersService {
       // The only suggestion of a workaround for this might be to add '{ withCredentials: false }' to the get, after the
       // url. All other so-called solutions require changes to the server, which obviously can't be done when trying
       // to access a 'public' web api.
-      return this.http.get(url).pipe( map((res:any) => res));
+      return this.http.get(url, {responseType: 'text'}).pipe(
+         map((res:string) => this.stripAngular20GarbageFromResponse(res))
+      );
+   }
+
+   // Following "upgrade" to Angular20 the JSON data in the repsonse has a block of
+   // base64 appended to it which makes the repsonse unparsable. I have been unable to
+   // find any reference to this behaviour in the "documentation". The only workaround
+   // so far is to force angular to handle the repsonse as plain text and then remove
+   // the garbage at the end and then try to parse as JSON.
+   //
+   // The appended garbage starts with '//#\nsourceMappingURL='. If that pattern
+   // appears in the JSON then the workaround will not work - it is quite unlikely
+   // that it will appear in timer data.
+   // Why do they do this shirt - what possible point can there be to corrupting the
+   // response data like this????
+   stripAngular20GarbageFromResponse(res : any) : any
+   {
+      //console.log("stripAngular20GarbageFromResponse: original: %s", res);
+      const regex = /\s\/\/#\s*sourceMappingURL=.*$/sg;
+      let resupd : any = res.replace(regex, "");
+
+      if(res == resupd)
+      {
+         console.log("stripAngular20GarbageFromResponse: Garbage FREE response received!!!");
+      }
+      return JSON.parse(resupd);
    }
 
    deleteTimer(timer : Timer) : Observable<String>
@@ -130,8 +156,10 @@ export class OWITimersService {
 
       url = this.apiurl + this.channelsvc  + this.nocache("?");;
 
-      return this.http.get(url).pipe( map((res:any) =>
+      return this.http.get(url, {responseType: 'text'}).pipe( map((res:any) =>
       {
+         res = this.stripAngular20GarbageFromResponse(res);
+
          let channels : Channel[] = [];
          let bouquet : string = "Favourites (TV)";
          // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));

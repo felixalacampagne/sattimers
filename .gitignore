@@ -10,6 +10,8 @@
 *.rej
 *.diff
 
+package-lock.json
+
 # Compiled output
 /dist
 /tmp

@@ -22,17 +22,24 @@
          <!-- these need to include the time!! -->
         <div class="row">
            <div class="col">
-              <mat-form-field  appearance="outline" class="full-width">
+              <mat-form-field appearance="outline">
                  <mat-label>Start Date</mat-label>
-                 <input matInput [matDatepicker]="startdatepicker" (change)="updateStart()" placeholder="dd/mm/yyyy" formControlName="startdate">
+                 <input matInput [matDatepicker]="startdatepicker" (dateChange)="updateStart($event)" placeholder="dd/mm/yyyy" formControlName="startdate">
                  <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
                  <mat-datepicker #startdatepicker></mat-datepicker>
               </mat-form-field>
-               <mat-form-field>
+
+               <mat-form-field appearance="outline">
                   <mat-label>Start time</mat-label>
-                  <input matInput [matTimepicker]="starttimepicker" (change)="updateStart()" formControlName="startdate">
+                  <input matInput [matTimepicker]="starttimepicker" (dateChange)="updateStart($event)" formControlName="startdate">
                   <mat-timepicker interval="5m" #starttimepicker/>
                   <mat-timepicker-toggle [for]="starttimepicker" matSuffix/>
+               </mat-form-field>
+               <mat-form-field appearance="outline">
+                  <mat-label>End time</mat-label>
+                  <input matInput [matTimepicker]="endtimepicker" (dateChange)="updateEnd($event)" formControlName="enddate">
+                  <mat-timepicker interval="5m" #endtimepicker/>
+                  <mat-timepicker-toggle [for]="endtimepicker" matSuffix/>
                </mat-form-field>
            </div>
 
@@ -42,20 +49,6 @@
 
               Need to initialise the date/time to either the timer to be edited or 'now' (or 12:00 midday)
            -->
-           <div class="col">
-              <mat-form-field  appearance="outline" class="full-width">
-                 <mat-label>End Date</mat-label>
-                 <input matInput [matDatepicker]="enddatepicker" (change)="updateEnd()" placeholder="dd/mm/yyyy" formControlName="enddate">
-                 <mat-datepicker-toggle matIconSuffix [for]="enddatepicker"></mat-datepicker-toggle>
-                 <mat-datepicker #enddatepicker></mat-datepicker>
-              </mat-form-field>
-               <mat-form-field>
-                  <mat-label>End time</mat-label>
-                  <input matInput [matTimepicker]="endtimepicker" (change)="updateEnd()" formControlName="enddate">
-                  <mat-timepicker interval="5m" #endtimepicker/>
-                  <mat-timepicker-toggle [for]="endtimepicker" matSuffix/>
-               </mat-form-field>
-           </div>
         </div>
 
         <!-- Day checkboxes for repeats  -->
