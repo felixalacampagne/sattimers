@@ -1,5 +1,5 @@
 // src/app/service/owitimers.service.ts
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -51,7 +51,7 @@ export class OWITimersService {
    getTimerList() : Observable<TimerList>
    {
       let url : string;
-      url = this.apiurl + this.timerlistsvc  + this.nocache("?");;
+      url = this.apiurl + this.timerlistsvc;
       // this fails when the client pages are not served from the sat box: CORS shirt designed to prevent
       // normal users from doing anything useful with the code.
       // The sat box server does actually set the allowed origin to be anything ('*') but apparently
@@ -59,16 +59,16 @@ export class OWITimersService {
       // The only suggestion of a workaround for this might be to add '{ withCredentials: false }' to the get, after the
       // url. All other so-called solutions require changes to the server, which obviously can't be done when trying
       // to access a 'public' web api.
-      return this.http.get(url, {responseType: 'text'}).pipe(
-         map((res:string) => this.stripAngular20GarbageFromResponse(res))
-      );
+      return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
+         .pipe( map((res:string) => this.stripAngular20GarbageFromResponse(res)) );
    }
 
-   // Following "upgrade" to Angular20 the JSON data in the repsonse has a block of
-   // base64 appended to it which makes the repsonse unparsable. I have been unable to
-   // find any reference to this behaviour in the "documentation". The only workaround
+   // Following "upgrade" to Angular20 the JSON data in the repsonse from 'ng serve'
+   // has a block of base64 appended to it which makes the repsonse unparsable. I have been
+   // unable to find any reference to this behaviour in the "documentation". The only workaround
    // so far is to force angular to handle the repsonse as plain text and then remove
-   // the garbage at the end and then try to parse as JSON.
+   // the garbage at the end and then try to parse as JSON. The garbage is not present
+   // when the data is served from the SR.
    //
    // The appended garbage starts with '//#\nsourceMappingURL='. If that pattern
    // appears in the JSON then the workaround will not work - it is quite unlikely
@@ -81,99 +81,93 @@ export class OWITimersService {
       const regex = /\s\/\/#\s*sourceMappingURL=.*$/sg;
       let resupd : any = res.replace(regex, "");
 
-      if(res == resupd)
-      {
-         console.log("stripAngular20GarbageFromResponse: Garbage FREE response received!!!");
-      }
+      // Confirmed: garbage is not present in data from SR.
+      // if(res == resupd)
+      // {
+      //    console.log("stripAngular20GarbageFromResponse: Garbage FREE response received!!!");
+      // }
       return JSON.parse(resupd);
    }
 
    deleteTimer(timer : Timer) : Observable<String>
    {
       let url : string;
-      let params : string
+      let htparams : HttpParams = new HttpParams();
+      let svcref : string = timer.serviceref ?? '';
       url = this.apiurl + this.timerdeletesvc;
 
-      params = "sRef=" + timer.serviceref;
-      params = params + "&begin=" + timer.begin;
-      params = params + "&end=" + timer.end;
-      params = params + this.nocache("&");
+      htparams = htparams.append("sRef", svcref);
+      htparams = htparams.append("begin", timer.begin); // No divide by 1000 ??
+      htparams = htparams.append("end", timer.end);
+      htparams = htparams.append("nocache", this.nocacheval());
 
-      url = url + "?" + params;
-      return this.http.get(url).pipe( map((res:any) => res));
+      return this.http.get(url, {params: htparams}).pipe( map((res:any) => res));
    }
 
    addTimer(timer : Timer) : Observable<string>
    {
       let url : string =  this.apiurl + this.timeraddsvc;
+      let htparams : HttpParams = new HttpParams();
 
-      // let params : string
-      // params = "sRef=" + timer.serviceref;
-      // params = params + "&begin=" + timer.begin;
-      // params = params + "&end=" + timer.end;
-      // params = params + this.nocache("&");
+      let owiBegin : number = timer.begin;
+      let owiEnd : number = timer.end;
+      let svcref : string = timer.serviceref ?? '';  // Should not be null - but let caller handle that
 
-      var owiBegin = timer.begin/1000;
-      var owiEnd = timer.end/1000;
-
-      var owiparams = "sRef=" + escape("" + timer.serviceref);
-      owiparams+= "&begin=" + owiBegin;
-      owiparams+= "&end=" + owiEnd;
-      owiparams+= "&name=" + escape("" + timer.name);
-      owiparams+= "&repeated=" + timer.repeated;
+      htparams = htparams.append("sRef", svcref);
+      htparams = htparams.append("begin", owiBegin);
+      htparams = htparams.append("end", owiEnd);
+      htparams = htparams.append("name", timer.name ?? '');
+      htparams = htparams.append("repeated", timer.repeated);
 
       if( timer.refold == undefined )
       {
-         owiparams+= "&channelOld=" + escape("" + timer.serviceref);
-         owiparams+= "&beginOld=" + owiBegin;
-         owiparams+= "&endOld=" + owiEnd;
+         htparams = htparams.append("channelOld", svcref);
+         htparams = htparams.append("beginOld", owiBegin);
+         htparams = htparams.append("endOld", owiEnd);
       }
       else
       {
-         owiparams+= "&channelOld=" + escape("" + timer.refold);
-         owiparams+= "&beginOld=" + timer.startold;
-         owiparams+= "&endOld=" + timer.stopold;
+         htparams = htparams.append("channelOld", timer.refold);
+         htparams = htparams.append("beginOld", timer.startold);
+         htparams = htparams.append("endOld", timer.stopold);
       }
 
-      owiparams+= "&afterevent=0";
+      htparams = htparams.append("afterevent", 0);
+      htparams = htparams.append("nocache", this.nocacheval());
 
-      url += "?" + owiparams + this.nocache("&");
-      return this.http.get(url).pipe( map((res:any) => res));
+      return this.http.get(url, {params: htparams}).pipe( map((res:any) => res));
    }
 
-   nocache(pfx : string)
+   nocacheval() : number
    {
-      // Can't simply append this to every URL as the prefix depends on
-      // whether there are already parameters. So simpler to get the caller to
-      // figure it out
-      var nocache=new Date().getTime();
-      return pfx + "nocache=" + nocache;
+      return Date.now();
    }
 
    getChannelList() : Observable<Channel[]>
    {
       let url : string;
 
-      url = this.apiurl + this.channelsvc  + this.nocache("?");;
+      url = this.apiurl + this.channelsvc;
 
-      return this.http.get(url, {responseType: 'text'}).pipe( map((res:any) =>
-      {
-         res = this.stripAngular20GarbageFromResponse(res);
-
-         let channels : Channel[] = [];
-         let bouquet : string = "Favourites (TV)";
-         // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
-         let services : ChannelList = res;
-         for (var id in services.services)
+      return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
+         .pipe( map((res:any) =>
          {
-            let service : Service = services.services[id];
-            if(service.servicename == bouquet)
+            res = this.stripAngular20GarbageFromResponse(res);
+
+            let channels : Channel[] = [];
+            let bouquet : string = "Favourites (TV)";
+            // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
+            let services : ChannelList = res;
+            for (var id in services.services)
             {
-               channels = service.subservices;
-               break;
+               let service : Service = services.services[id];
+               if(service.servicename == bouquet)
+               {
+                  channels = service.subservices;
+                  break;
+               }
             }
-         }
-         return channels;
-      }));
+            return channels;
+         }));
    }
 }

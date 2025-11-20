@@ -12,43 +12,28 @@
    </mat-card-header>
    <form [formGroup]="editForm" novalidate (ngSubmit)="onSubmit()">
      <mat-card-content>
-      <!-- Original form has a datepicker for the start date and two dropdowns for the HH and mm
-           where the MM are in 5min increments
-           The end time is five dropdowns for YYYY, MM, DD and HH mm. I think the date is
-           probably restricted to not being less than currently selected start time.
-           Don't think I want to do it like this but currently don't have an idea how I will do it...
-      -->
-
-         <!-- these need to include the time!! -->
         <div class="row">
            <div class="col">
               <mat-form-field appearance="outline">
                  <mat-label>Start Date</mat-label>
-                 <input matInput [matDatepicker]="startdatepicker" (dateChange)="updateStart($event)" placeholder="dd/mm/yyyy" formControlName="startdate">
+                 <input matInput [matDatepicker]="startdatepicker" placeholder="dd/mm/yyyy" formControlName="startdate">
                  <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
                  <mat-datepicker #startdatepicker></mat-datepicker>
               </mat-form-field>
 
                <mat-form-field appearance="outline">
                   <mat-label>Start time</mat-label>
-                  <input matInput [matTimepicker]="starttimepicker" (dateChange)="updateStart($event)" formControlName="startdate">
+                  <input matInput [matTimepicker]="starttimepicker" (blur)="checkStartTime()" formControlName="starttime">
                   <mat-timepicker interval="5m" #starttimepicker/>
                   <mat-timepicker-toggle [for]="starttimepicker" matSuffix/>
                </mat-form-field>
                <mat-form-field appearance="outline">
                   <mat-label>End time</mat-label>
-                  <input matInput [matTimepicker]="endtimepicker" (dateChange)="updateEnd($event)" formControlName="enddate">
+                  <input matInput [matTimepicker]="endtimepicker"  (blur)="checkEndTime()" formControlName="endtime">
                   <mat-timepicker interval="5m" #endtimepicker/>
                   <mat-timepicker-toggle [for]="endtimepicker" matSuffix/>
                </mat-form-field>
            </div>
-
-         <!-- Might be worth considering just an end time, a time less than start time meaning the next day.
-              Most recordings are on the same day so very tedious to have to enter the end day.
-              Recording should probably limited to 4 or 5 hours anyway so no risk of abiguity for the end time.
-
-              Need to initialise the date/time to either the timer to be edited or 'now' (or 12:00 midday)
-           -->
         </div>
 
         <!-- Day checkboxes for repeats  -->

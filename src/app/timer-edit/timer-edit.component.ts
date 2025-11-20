@@ -12,10 +12,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { DateformatService } from '../service/dateformat.service';
 import { Timer } from '../model/timer.model';
 import { Channel } from '../model/channel.model';
-import { add, roundToNearestMinutes } from "date-fns"; // requires 'npm install date-fns --save'
 import { OWITimersService } from '../service/owitimers.service';
 import { TimerUtilsService } from '../service/timer-utils.service';
 import { lastValueFrom, tap } from 'rxjs';
+
+// see https://date-fns.org/v4.1.0/docs/Getting-Started for the date functions
+import { add, format, isBefore, roundToNearestMinutes, setHours, setMinutes, startOfDay } from "date-fns"; // requires 'npm install date-fns --save'
 
 const ln  = "TimerEditCmp.";
 // FormatingDateAdapter and ISO_DATE_FORMAT (together with DateformatService) copied from 'account'.
@@ -46,8 +48,6 @@ export class FormatingDateAdapter extends NativeDateAdapter
       return ret;
    }
 }
-
-
 
 // A MAT_DATE_FORMATS MUST be provided. It appears that the dateInput/timeInput formats described here
 // are passed to the FormatingDateAdapter format method by the date/timepickers.
@@ -111,8 +111,6 @@ const id = currentNav.extras.state.id;
 const name = currentNav.extras.state.name;
 */
 
-
-
    @Input() origTimer: Timer | undefined;
    @Output() public submittedEvent = new EventEmitter();
 
@@ -135,24 +133,33 @@ const name = currentNav.extras.state.name;
    )
    {
       this.editForm = new FormGroup({
-         startdate: new FormControl('', Validators.required),
-         enddate: new FormControl('', Validators.required),
-         timername: new FormControl('', Validators.required),
-         // repeats: new FormControl('', Validators.required),
+         startdate: new FormControl<Date>(new Date(), Validators.required),
+         starttime: new FormControl<Date>(new Date(), Validators.required),
+         endtime: new FormControl<Date>(new Date(), Validators.required),
+         timername: new FormControl<string>('', Validators.required),
          channelid: new FormControl(this.channels[0], Validators.required)
        });
 
+       let fc : FormControl<any>;
+       fc = this.editForm.controls["startdate"] as FormControl;
+       fc.valueChanges.subscribe(x => this.updateStartDate(x));
+
+       fc = this.editForm.controls["starttime"] as FormControl;
+       fc.valueChanges.subscribe(x => this.updateStartTime(x));
+
+       fc = this.editForm.controls["endtime"] as FormControl;
+       fc.valueChanges.subscribe(x => this.updateEndTime(x));
    }
 
    ngOnInit()
    {
       let dnow = new Date();
-      // see https://date-fns.org/v4.1.0/docs for the date functions
-      dnow = roundToNearestMinutes(dnow, {nearestTo: 5, roundingMethod: 'floor'});
+      dnow = this.roundstartTime(dnow);
       let dend = add(dnow, {hours:1, minutes:5});
       this.editForm.patchValue({
-         startdate: dnow,
-         enddate: dend
+         startdate: startOfDay(dnow),
+         starttime: dnow,
+         endtime: dend
       });
       this.initForm();
    }
@@ -192,18 +199,116 @@ const name = currentNav.extras.state.name;
       }
    }
 
-   // Currently not called
-   updateStart(event : any)
+   // Apparently there are no events raised by the controls in the HTML
+   // FormControls.valueChanges.subscribe can be used to detect when a change is
+   // being made but the value passed in is not the actual value being applied
+   // to the date. When startdate is a CET value with a time - when the date control
+   // is changed 'event' is a UTC date of the CET midnight value, ie. the day before!,
+   // and when the time field is changed the time part is the UTC equivalent of the
+   // chosen time as CET but the date part is for 'today', not the actual date of the control.
+   // Confused, I sure as hell am!!
+   // Looks like I'll have to do my own date/time handling, which is obviously something I
+   // wanted to avoid and actually what the forking libraries are supposed to do for me!
+   // Yet again I wonder why the fork I bother with the angular stuff!!!
+   updateStartDate(event : any)
    {
-      console.log(ln + "updateStart: start:" + this.editForm.value.startdate
-         + " end:" + this.editForm.value.enddate
-         + " event: " + JSON.stringify(event));
+      let d : Date = new Date( Date.parse(String(event)));
+      let st : Date = this.editForm.value.starttime;
+      let newstart : Date = this.calcStartDatetime(d, st);
+      let newend : Date = this.calcEndDatetime(newstart, st, this.editForm.value.endtime);
+
+      console.log(ln + "updateEndTime:"
+         + " start: " + this.formatDateTime(newstart)
+         + " end: " + this.formatDateTime(newend)
+      );
    }
 
-   // Currently not called
-   updateEnd(event : any)
+   updateStartTime(event : any)
    {
-      console.log(ln + "updateEnd: start:" + this.editForm.value.startdate + " end:" + this.editForm.value.enddate + " event: " + JSON.stringify(event));
+      let t : Date = new Date( Date.parse(String(event)));
+      let sd = this.editForm.value.startdate;
+      let newstart : Date = this.calcStartDatetime(sd, t);
+      let end : Date = this.calcEndDatetime(sd, t, this.editForm.value.endtime);
+      console.log(ln + "updateStartTime:"
+         + " start: " + this.formatDateTime(newstart)
+         + " end: " + this.formatDateTime(end)
+      );
+   }
+
+   updateEndTime(event : any)
+   {
+      let t : Date = new Date( Date.parse(String(event)));
+      let sd : Date = this.editForm.value.startdate;
+      let st : Date = this.editForm.value.starttime;
+
+      let curstart : Date = setMinutes(setHours(sd, st.getHours()), st.getMinutes());
+      let newend : Date = this.calcEndDatetime(sd, st, t);
+
+      console.log(ln + "updateEndTime:"
+         + " start: " + this.formatDateTime(curstart)
+         + " end: " + this.formatDateTime(newend)
+      );
+   }
+
+   checkStartTime()
+   {
+      let st : Date = this.editForm.value.starttime;
+      let rd = this.roundstartTime(st);
+      this.editForm.patchValue({starttime: rd});
+   }
+
+   checkEndTime()
+   {
+      let et : Date = this.editForm.value.endtime;
+      let rd = this.roundendTime(et);
+      this.editForm.patchValue({endtime: rd});
+   }
+
+   roundstartTime(starttime : Date) : Date
+   {
+      // see https://date-fns.org/v4.1.0/docs/Getting-Started for the date functions
+      let rd = roundToNearestMinutes(starttime, {nearestTo: 5, roundingMethod: 'floor'});
+      console.log(ln + "roundstartTime: orig: %s rounded: %s", this.formatTime(starttime), this.formatTime(rd));
+      return rd;
+   }
+
+   roundendTime(endtime : Date) : Date
+   {
+      let rd = roundToNearestMinutes(endtime, {nearestTo: 5, roundingMethod: 'ceil'});
+      console.log(ln + "roundstartTime: orig: %s rounded: %s", this.formatTime(endtime), this.formatTime(rd));
+      return rd;
+   }
+
+   calcStartDatetime(startdate : Date, starttime : Date) : Date
+   {
+      let start : Date = setMinutes(setHours(startdate, starttime.getHours()), starttime.getMinutes());
+      return start;
+   }
+
+   calcEndDatetime(startdate : Date, starttime : Date, endtime : Date) : Date
+   {
+      let start : Date = setMinutes(setHours(startdate, starttime.getHours()), starttime.getMinutes());
+      let end : Date = setMinutes(setHours(startdate, endtime.getHours()), endtime.getMinutes());
+      if( isBefore(end, start) )
+      {
+         // Assume enddate is tomorrow
+         end = add(end, {days: 1});
+      }
+      return end;
+   }
+
+   formatDateTime(dt : Date) : string
+   {
+      return format(dt, "yy-MM-dd HH:mm");
+   }
+
+   formatDate(d : Date) : string
+   {
+      return format(d, "yy-MM-dd");
+   }
+   formatTime(t : Date) : string
+   {
+      return format(t, "HH:mm");
    }
 
    public onSubmit()
@@ -252,16 +357,21 @@ const name = currentNav.extras.state.name;
    mapFormToTimer() : Timer
    {
       let timer : Timer = new Timer();
-      let startd : Date = new Date(this.editForm.value.startdate);
-      let endd : Date = new Date(this.editForm.value.enddate);
+      let startd : Date = this.calcStartDatetime( //  new Date(this.editForm.value.startdate);
+         this.editForm.value.startdate,
+         this.editForm.value.starttime);
+      let endd : Date = this.calcEndDatetime(     // new Date(this.editForm.value.enddate);
+         this.editForm.value.startdate,
+         this.editForm.value.starttime,
+         this.editForm.value.endtime);
       console.log(ln + "mapFormToTimer: channelid: %s", JSON.stringify(this.editForm.value.channelid));
 
       timer.serviceref = this.editForm.value.channelid.servicereference;
       timer.servicename = this.editForm.value.channelid.servicename;
       timer.name = this.editForm.value.timername;
       timer.repeated = this.mapDaysToRepeated();
-      timer.begin = startd.getTime();
-      timer.end = endd.getTime();
+      timer.begin = startd.getTime() / 1000;
+      timer.end = endd.getTime() / 1000;
       timer.sunx = startd.getTime();
       timer.eunx = endd.getTime();
 
@@ -279,8 +389,9 @@ const name = currentNav.extras.state.name;
    {
      if(timer)
      {
-         let sd = this.utils.getDateFromSTBValue(timer.begin);
-         let ed = this.utils.getDateFromSTBValue(timer.end);
+         // TODO: Ensure values are rounded to 5 mins.
+         let sd = this.roundstartTime(this.utils.getDateFromSTBValue(timer.begin));
+         let ed = this.roundendTime(this.utils.getDateFromSTBValue(timer.end));
 
          // MUST use one of the Channel objects from the array, creating new one
          // with same values does not work!
@@ -291,10 +402,10 @@ const name = currentNav.extras.state.name;
             channelid : chan,
             timername : timer.name,
             startdate : sd,
-            enddate : ed
+            starttime : sd,
+            endtime : ed
             });
          this.mapRepeatedToDays(timer.repeated);
-
       }
    }
 

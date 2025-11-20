@@ -176,12 +176,27 @@ public parseParamsToTimer(params: Params) : Timer
    // Round end UP
    eunx = Math.floor( (eunx + round - 1) / round) * round;
 
-   var begin = new Date(sunx).getTime();
-   var end = new Date(eunx).getTime();
+   var begin = new Date(sunx).getTime() / 1000;
+   var end = new Date(eunx).getTime() / 1000;
+
 
    timer.serviceref = this.deEscape(sref);
+
+   // descape should not be required when using route.queryParams
+   if(sref != timer.serviceref)
+   {
+      console.log(ln + "parseParamsToTimer: descape changed sref: %s vs %s", sref, timer.serviceref);
+   }
+
+
    timer.repeated = repeated;
    timer.name = this.deEscape(name);
+  // descape should not be required when using route.queryParams
+  if(name != timer.name)
+   {
+      console.log(ln + "parseParamsToTimer: descape changed name: %s vs %s", name, timer.name);
+   }
+
    timer.begin = begin;
    timer.end = end;
    // These are provided by the timeredit form. They are not provided by the EPG links
@@ -194,92 +209,6 @@ public parseParamsToTimer(params: Params) : Timer
    return timer;
 }
 
-
-//deprecated - use parseParamsToTimer
-public parseHttpParamsToTimer(params: HttpParams) : Timer
-{
-   let timer : Timer = new Timer();
-   var sref = "" + params.get("sref");
-   let repeated : number = 0;
-   if(sref == "undefined")
-   {
-      // Something for the caller to check for success without needing to put Timer | null all over the place
-      timer.serviceref = sref;
-      return timer;
-   }
-
-   let stmp = params.get("repeated");
-   if(stmp == null )
-   {
-      repeated = 0;
-   }
-   else
-   {
-      repeated = Number(stmp);
-   }
-
-   let name  = params.get("name");
-   let sunx;
-   let eunx;
-
-   if((params.get("sunx") !== undefined) && (params.get("eunx") !== undefined) )
-   {
-      // This is the way the EPG sends the start/stop/times
-      // console.log("getTimerFromParams: Using unix date values");
-      sunx = Number(params.get("sunx"));
-      eunx = Number(params.get("eunx"));
-   }
-   else
-   {
-      // This is the way the timeredit form sends the start/stop times
-      // Date will be interpreted using the local device time zone
-      console.log("getTimerFromParams: Using component date values");
-      sunx = new Date(
-         Number(params.get("syear")),
-         Number(params.get("smonth"))-1,
-         Number(params.get("sday")),
-         Number(params.get("shour")),
-         Number(params.get("smin")),
-         0).getTime();
-      eunx = new Date(
-         Number(params.get("eyear")),
-         Number(params.get("emonth"))-1,
-         Number(params.get("eday")),
-         Number(params.get("ehour")),
-         Number(params.get("emin")),
-         0).getTime();
-   }
-
-   timer.sunx = sunx; // The original, unrounded value
-   timer.eunx = eunx; // The original, unrounded value
-
-   // Times must be a multiple of 5 otherwise problems occur in the edit screen due to the intervals of the
-   // minute dropdown list. Applying the rounding to the millisecond value allows the end time to be easily rounded UP
-   var round = 5 * 60 * 1000;
-
-   // Round start DOWN
-   sunx = Math.floor(sunx / round) * round;
-
-   // Round end UP
-   eunx = Math.floor( (eunx + round - 1) / round) * round;
-
-   var begin = new Date(sunx).getTime();
-   var end = new Date(eunx).getTime();
-
-   timer.serviceref = this.deEscape(sref);
-   timer.repeated = repeated;
-   timer.name = this.deEscape(name);
-   timer.begin = begin;
-   timer.end = end;
-   // These are provided by the timeredit form. They are not provided by the EPG links
-   var refold = "" + params.get("refOld");
-   timer.refold = this.deEscape(refold);   // This should be "undefined" (text) if refOld is not present.
-
-   timer.startold = params.get("startOld");
-   timer.stopold = params.get("stopOld");
-
-   return timer;
-}
 
 // Strings in the input URL contain spaces escaped as "+". These are not
 // handled by the js unescape function so they need to be manually done.
