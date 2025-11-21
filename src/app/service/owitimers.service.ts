@@ -19,12 +19,11 @@ export class OWITimersService {
    private serverhost : string = "";
    private apiurl : string ='';
    private apiapp : string = "";
-   private timerlistsvc : string ="timerlist";  // this is a page
-   private timereditsvc : string ="timeredit";  // this is a page
-   private timerdeletesvc : string = "timerdelete"; // this is an api call
-   private timeraddsvc = "timeradd";                // this is an api call
-   private timerchgsvc = "timerchange";             // api call
-   private channelsvc = "getallservices";           // api call to list channels
+   private timerlistapi : string ="timerlist";
+   private timerdeleteapi : string = "timerdelete";
+   private timeraddapi = "timeradd";
+   private timerchangeapi = "timerchange";
+   private channelapi = "getallservices";
 
 
    constructor(private http : HttpClient)
@@ -52,7 +51,7 @@ export class OWITimersService {
    getTimerList() : Observable<TimerList>
    {
       let url : string;
-      url = this.apiurl + this.timerlistsvc;
+      url = this.apiurl + this.timerlistapi;
       // this fails when the client pages are not served from the sat box: CORS shirt designed to prevent
       // normal users from doing anything useful with the code.
       // The sat box server does actually set the allowed origin to be anything ('*') but apparently
@@ -95,7 +94,7 @@ export class OWITimersService {
       let url : string;
       let htparams : HttpParams = new HttpParams();
       let svcref : string = timer.serviceref ?? '';
-      url = this.apiurl + this.timerdeletesvc;
+      url = this.apiurl + this.timerdeleteapi;
 
       htparams = htparams.append("sRef", svcref);
       htparams = htparams.append("begin", timer.begin); // No divide by 1000 ??
@@ -133,7 +132,7 @@ export class OWITimersService {
 
    addTimer(htparams : HttpParams) : Observable<string>
    {
-      let url : string =  this.apiurl + this.timeraddsvc;
+      let url : string =  this.apiurl + this.timeraddapi;
 
       // Seems the ajax code was more complex than I thought.
       // I've observed that 'timeradd' does not update a timer when only the name
@@ -148,7 +147,7 @@ export class OWITimersService {
 
    changeTimer(htparams : HttpParams) : Observable<string>
    {
-      let url : string = this.apiurl + this.timerchgsvc;
+      let url : string = this.apiurl + this.timerchangeapi;
       return this.http.get(url, {params: htparams}).pipe( map((res:any) => res));
    }
 
@@ -161,7 +160,7 @@ export class OWITimersService {
    {
       let url : string;
 
-      url = this.apiurl + this.channelsvc;
+      url = this.apiurl + this.channelapi;
 
       return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
          .pipe( map((res:any) =>
