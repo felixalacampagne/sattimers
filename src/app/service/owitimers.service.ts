@@ -23,6 +23,7 @@ export class OWITimersService {
    private timereditsvc : string ="timeredit";  // this is a page
    private timerdeletesvc : string = "timerdelete"; // this is an api call
    private timeraddsvc = "timeradd";                // this is an api call
+   private timerchgsvc = "timerchange";             // api call
    private channelsvc = "getallservices";           // api call to list channels
 
 
@@ -104,9 +105,8 @@ export class OWITimersService {
       return this.http.get(url, {params: htparams}).pipe( map((res:any) => res));
    }
 
-   addTimer(timer : Timer) : Observable<string>
+   buildModifyTimerParams(timer : Timer) : HttpParams
    {
-      let url : string =  this.apiurl + this.timeraddsvc;
       let htparams : HttpParams = new HttpParams();
 
       let owiBegin : number = timer.begin;
@@ -119,13 +119,7 @@ export class OWITimersService {
       htparams = htparams.append("name", timer.name ?? '');
       htparams = htparams.append("repeated", timer.repeated);
 
-      if( timer.refold == undefined )
-      {
-         htparams = htparams.append("channelOld", svcref);
-         htparams = htparams.append("beginOld", owiBegin);
-         htparams = htparams.append("endOld", owiEnd);
-      }
-      else
+      if( timer.refold != undefined )
       {
          htparams = htparams.append("channelOld", timer.refold);
          htparams = htparams.append("beginOld", timer.startold);
@@ -134,7 +128,27 @@ export class OWITimersService {
 
       htparams = htparams.append("afterevent", 0);
       htparams = htparams.append("nocache", this.nocacheval());
+      return htparams;
+   }
 
+   addTimer(htparams : HttpParams) : Observable<string>
+   {
+      let url : string =  this.apiurl + this.timeraddsvc;
+
+      // Seems the ajax code was more complex than I thought.
+      // I've observed that 'timeradd' does not update a timer when only the name
+      // is modified, if start/stop are changed then a new timer is added,
+      // not sure about the channel but probably also adds a new tiemr.
+      // The ajax code deletes the original timer and then uses
+      // a 'timerchange' api - if that responds with a failure it then
+      // attempt to use the 'timeradd' api.
+      // To do this with angular is going to be horrible...
+      return this.http.get(url, {params: htparams}).pipe( map((res:any) => res));
+   }
+
+   changeTimer(htparams : HttpParams) : Observable<string>
+   {
+      let url : string = this.apiurl + this.timerchgsvc;
       return this.http.get(url, {params: htparams}).pipe( map((res:any) => res));
    }
 

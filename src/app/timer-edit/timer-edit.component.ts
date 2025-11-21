@@ -18,6 +18,7 @@ import { lastValueFrom, tap } from 'rxjs';
 
 // see https://date-fns.org/v4.1.0/docs/Getting-Started for the date functions
 import { add, format, isBefore, roundToNearestMinutes, setHours, setMinutes, startOfDay } from "date-fns"; // requires 'npm install date-fns --save'
+import { HttpParams } from '@angular/common/http';
 
 const ln  = "TimerEditCmp.";
 // FormatingDateAdapter and ISO_DATE_FORMAT (together with DateformatService) copied from 'account'.
@@ -127,6 +128,8 @@ const name = currentNav.extras.state.name;
 
    editForm : FormGroup;
    channels : Channel[] = [];
+   submitInProgress: boolean = false;
+
    constructor(
       private owitimerSvc: OWITimersService,
       private utils : TimerUtilsService
@@ -188,6 +191,15 @@ const name = currentNav.extras.state.name;
             console.log(ln + "loadChannels: pipe-tap");
             this.channels = res;
          })));
+   }
+
+   async deleteTimer(timer : Timer)
+   {
+      return await lastValueFrom(this.owitimerSvc.deleteTimer(timer)
+         .pipe(tap(res => {
+            console.log(ln + "deleteTimer: pipe-tap");
+         }
+      )));
    }
 
    updateRepeat(repeaton: boolean, index?: number)
@@ -314,24 +326,67 @@ const name = currentNav.extras.state.name;
    public onSubmit()
    {
       let t : Timer = this.mapFormToTimer();
-      this.owitimerSvc.addTimer(t).subscribe({
-         next: (res) => {
-            console.log(ln + "onSubmit: next: result: %s", JSON.stringify(res));
-         },
-         error: (err) => {
-            console.log(ln + "onSubmit: Error: %s", JSON.stringify(err, null, 2));
-         },
-         complete: () => {
-            console.log(ln + "onSubmit: completed");
-         }
-       });
+      let params : HttpParams = this.owitimerSvc.buildModifyTimerParams(t);
+
+      // Should start an in progress spinner to indicate something is happening
+      this.submitInProgress = true;
+
+      // Modifying/adding a timer is more complex than originally thought. The ajax code
+      // does a delete and change and if that files it tries to add. Don't know what
+      // the difference between change and add is given that change alone does not seem
+      // to work - probably because it seems to be keyed on svcref, start, stop so an
+      // adjustment to the causes it to be treated as a new timer, regardless of the old
+      // settings, it seems.
+      // This means the submit needs to know if it is expected to be updating or adding.
+      // This will be determined by the state of origTimer -> timer.refold
+      if(t.refold != undefined)
+      {
+         // For now let's try simply to do a change hoping the refold values
+         // are used to identify the timer to update
+         // console.log(ln + "onSubmit: deleting timer");
+         // this.deleteTimer(t);
+         console.log(ln + "onSubmit: attempting to change timer");
+         this.owitimerSvc.changeTimer(params).subscribe({
+            next: (res) => {
+               console.log(ln + "onSubmit: change: next: result: %s", JSON.stringify(res));
+            },
+            error: (err) => {
+               console.log(ln + "onSubmit: change: Error: %s", JSON.stringify(err, null, 2));
+               this.submitInProgress = false;
+            },
+            complete: () => {
+               console.log(ln + "onSubmit: change: completed");
+               this.submitInProgress = false;
+            }
+         });
+      }
+      else
+      {
+         this.owitimerSvc.addTimer(params).subscribe({
+            next: (res) => {
+               console.log(ln + "onSubmit: add: next: result: %s", JSON.stringify(res));
+            },
+            error: (err) => {
+               console.log(ln + "onSubmit: add: Error: %s", JSON.stringify(err, null, 2));
+               this.submitInProgress = false;
+            },
+            complete: () => {
+               console.log(ln + "onSubmit: add: completed");
+               this.submitInProgress = false;
+            }
+         });
+      }
    }
 
    public onCancel()
    {
+
    }
 
-
+   public submitDisabled() : boolean
+   {
+      return !this.editForm.valid || this.submitInProgress;
+   }
 
    mapRepeatedToDays(rep : number)
    {
@@ -380,6 +435,12 @@ const name = currentNav.extras.state.name;
          timer.refold = this.origTimer.serviceref;
          timer.startold = this.origTimer.begin;
          timer.stopold = this.origTimer.end;
+      }
+      else
+      {
+         timer.refold = undefined;
+         timer.startold = undefined;
+         timer.stopold = undefined;
       }
       console.log(ln + "mapFormToTimer: timer: %s", JSON.stringify(timer));
       return timer;

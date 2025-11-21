@@ -74,7 +74,7 @@
       <mat-card-actions>
          <div class="actions-card-right">
             <button mat-stroked-button type="reset" (click)="onCancel()">Cancel</button>
-            <button mat-flat-button type="submit" [disabled]="!editForm.valid">Submit</button>
+            <button mat-flat-button type="submit" [disabled]="submitDisabled()">Submit</button>
          </div>
       </mat-card-actions>
   </form>
