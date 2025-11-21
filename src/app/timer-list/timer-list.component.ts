@@ -13,6 +13,7 @@ import { TimerDeleteConfirmModalComponent } from './timer-delete-confirm-modal.c
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'timer-list',
@@ -179,7 +180,8 @@ dialog = inject(MatDialog);
 
    addTimer(timer : Timer)
    {
-      this.timerService.addTimer(timer).subscribe({
+      let params : HttpParams = this.timerService.buildModifyTimerParams(timer);
+      this.timerService.addTimer(params).subscribe({
          next: (res)=>{
             console.log("TimerListComponent.addTimer: result: " + JSON.stringify(res));
             // {"result":true,"message":"Timer 'PlayOJO Live Casino Show 25-11-14 3x317 Episode 317' added"}

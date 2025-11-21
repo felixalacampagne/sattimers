@@ -1,0 +1,56 @@
+@use '@angular/material' as mat;
+.row
+{
+  display: flex;
+  flex-direction: row;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.col {
+  flex: 1;
+}
+
+.col:last-child {
+  margin-right: 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.width3 {
+   width: 33%;
+}
+
+.marginr10
+{
+   margin-right:10px;
+}
+
+.actions-card-right
+{
+   display: inline;
+   float: right;
+   margin-bottom: 10px;
+   margin-right: 10px
+}
+
+.actions-card-left
+{
+   display: inline;
+   margin-bottom: 10px;
+}
+
+ // https://material.angular.dev/components/checkbox/styling
+.repeated {
+   @include mat.checkbox-overrides((
+      touch-target-size:10px,
+      label-text-color: orange,
+      selected-icon-color: red,
+   ));
+ }
+ .mdc-checkbox
+ {
+   width: 20px
+ }
