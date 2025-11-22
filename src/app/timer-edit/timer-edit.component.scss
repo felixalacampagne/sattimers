@@ -43,14 +43,15 @@
 }
 
  // https://material.angular.dev/components/checkbox/styling
-.repeated {
-   @include mat.checkbox-overrides((
-      touch-target-size:10px,
-      label-text-color: orange,
-      selected-icon-color: red,
-   ));
- }
- .mdc-checkbox
- {
-   width: 20px
- }
+//.repeated {
+//   @include mat.checkbox-overrides((
+//      touch-target-size:10px,
+//      label-text-color: orange,
+//      selected-icon-color: red,
+//   ));
+// }
+//
+// .mdc-checkbox
+// {
+//   width: 20px
+// }
