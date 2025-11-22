@@ -209,7 +209,7 @@ dialog = inject(MatDialog);
 
    edittimer(timer: Timer)
    {
-      this.utils.setTimerToEdit(timer);
+      this.utils.pushTimerToEdit(timer);
       this.router.navigate(["timeredit"]);
       // window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self");
    }

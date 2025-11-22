@@ -175,7 +175,7 @@ const name = currentNav.extras.state.name;
    async initForm()
    {
       console.log(ln + "initForm: start");
-      this.origTimer = this.utils.getTimerToEdit();
+      this.origTimer = this.utils.pullTimerToEdit();
 
       console.log(ln + "initForm: loadchans pre-load: %d", this.channels.length);
       await this.loadChannels();
@@ -197,7 +197,7 @@ const name = currentNav.extras.state.name;
    {
       return await lastValueFrom(this.owitimerSvc.deleteTimer(timer)
          .pipe(tap(res => {
-            console.log(ln + "deleteTimer: pipe-tap");
+            console.log(ln + "deleteTimer: pipe-tap: res:%s", JSON.stringify(res));
          }
       )));
    }
@@ -323,59 +323,65 @@ const name = currentNav.extras.state.name;
       return format(t, "HH:mm");
    }
 
-   public onSubmit()
+   // Modifying/adding a timer is more complex than it should be. The ajax code
+   // does a delete and change and if that fails it tries to add. Don't know what
+   // the difference between change and add is given that change alone does not seem
+   // to work - probably because it seems to be keyed on svcref, start, stop so an
+   // adjustment to the time causes it to be treated as a new timer, regardless of the old
+   // settings, it seems.
+   // This means the submit needs to know if it is expected to be updating or adding.
+   // This will be determined by the state of origTimer -> timer.refold
+   //
+   // The SR does weird things when a timer is simply updated, eg.
+   // changing start time results in a timer with the new time but one week in the
+   // future compared to the original timer. I guess this explains why the ajax code
+   // does a delete first.
+   //
+   // When timer is deleted first the timerchange api returns an error saying it
+   // can't find the timer with the given start and end time!
+   // So it looks like it does NOT use the old references to identify the timer being
+   // changed in which case anything to do with the old references can be dropped!
+   // It also suggests that the ajax code always failed on the timerchange and
+   // therefore always performed the timeradd (hard to tell without the console logs
+   // due to all the callbacks)
+   async changeTimerSync()
    {
       let t : Timer = this.mapFormToTimer();
       let params : HttpParams = this.owitimerSvc.buildModifyTimerParams(t);
 
+
+      if(this.origTimer != undefined)
+      {
+         console.log(ln + "changeTimerSync: deleting old timer");
+         await this.deleteTimer(this.origTimer);
+         console.log(ln + "changeTimerSync: adding updated timer");
+      }
+
+      this.owitimerSvc.addTimer(params).subscribe({
+         next: (res) => {
+            console.log(ln + "changeTimerSync: add: next: result: %s", JSON.stringify(res));
+         },
+         error: (err) => {
+            console.log(ln + "changeTimerSync: add: Error: %s", JSON.stringify(err, null, 2));
+            this.submitInProgress = false;
+         },
+         complete: () => {
+            console.log(ln + "changeTimerSync: add: completed");
+            this.submitInProgress = false;
+         }
+      });
+   }
+
+   public onSubmit()
+   {
+
       // Should start an in progress spinner to indicate something is happening
       this.submitInProgress = true;
 
-      // Modifying/adding a timer is more complex than originally thought. The ajax code
-      // does a delete and change and if that files it tries to add. Don't know what
-      // the difference between change and add is given that change alone does not seem
-      // to work - probably because it seems to be keyed on svcref, start, stop so an
-      // adjustment to the causes it to be treated as a new timer, regardless of the old
-      // settings, it seems.
-      // This means the submit needs to know if it is expected to be updating or adding.
-      // This will be determined by the state of origTimer -> timer.refold
-      if(t.refold != undefined)
-      {
-         // For now let's try simply to do a change hoping the refold values
-         // are used to identify the timer to update
-         // console.log(ln + "onSubmit: deleting timer");
-         // this.deleteTimer(t);
-         console.log(ln + "onSubmit: attempting to change timer");
-         this.owitimerSvc.changeTimer(params).subscribe({
-            next: (res) => {
-               console.log(ln + "onSubmit: change: next: result: %s", JSON.stringify(res));
-            },
-            error: (err) => {
-               console.log(ln + "onSubmit: change: Error: %s", JSON.stringify(err, null, 2));
-               this.submitInProgress = false;
-            },
-            complete: () => {
-               console.log(ln + "onSubmit: change: completed");
-               this.submitInProgress = false;
-            }
-         });
-      }
-      else
-      {
-         this.owitimerSvc.addTimer(params).subscribe({
-            next: (res) => {
-               console.log(ln + "onSubmit: add: next: result: %s", JSON.stringify(res));
-            },
-            error: (err) => {
-               console.log(ln + "onSubmit: add: Error: %s", JSON.stringify(err, null, 2));
-               this.submitInProgress = false;
-            },
-            complete: () => {
-               console.log(ln + "onSubmit: add: completed");
-               this.submitInProgress = false;
-            }
-         });
-      }
+
+      console.log(ln + "onSubmit: changeTimerSync: call");
+      this.changeTimerSync();
+      console.log(ln + "onSubmit: changeTimerSync: return");
    }
 
    public onCancel()
