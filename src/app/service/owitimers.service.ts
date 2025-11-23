@@ -130,7 +130,7 @@ export class OWITimersService {
       return htparams;
    }
 
-   addTimer(htparams : HttpParams) : Observable<string>
+   addTimer(htparams : HttpParams) : Observable<any>
    {
       let url : string =  this.apiurl + this.timeraddapi;
 

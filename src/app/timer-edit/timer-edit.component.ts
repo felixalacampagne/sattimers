@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injectable, input, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Injectable, input, Input, Output, signal } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -7,6 +7,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { DateAdapter, MAT_DATE_FORMATS, MatDateFormats, NativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -20,6 +21,7 @@ import { lastValueFrom, tap } from 'rxjs';
 // see https://date-fns.org/v4.1.0/docs/Getting-Started for the date functions
 import { add, format, isBefore, roundToNearestMinutes, setHours, setMinutes, startOfDay } from "date-fns"; // requires 'npm install date-fns --save'
 import { HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 const ln  = "TimerEditCmp.";
 // FormatingDateAdapter and ISO_DATE_FORMAT (together with DateformatService) copied from 'account'.
@@ -132,9 +134,12 @@ const name = currentNav.extras.state.name;
    channels : Channel[] = [];
    submitInProgress: boolean = false;
 
+   private snackBar = inject(MatSnackBar); // new way instead of putting in constructor
+
    constructor(
       private owitimerSvc: OWITimersService,
-      private utils : TimerUtilsService
+      private utils : TimerUtilsService,
+      private router: Router
    )
    {
       this.editForm = new FormGroup({
@@ -349,18 +354,31 @@ const name = currentNav.extras.state.name;
          await this.deleteTimer(this.origTimer);
          console.log(ln + "changeTimerSync: adding updated timer");
       }
-
+/*
+Conflicts look like this:
+TimerEditCmp.changeTimerSync: add: next: result: {"result":false,"message":"Conflicting Timer(s) detected! Conflicting timer / Summerwater 25-11-23 1x04 Episode 04 / Prisoner 951 25-11-23 1x01 Episode 01","conflicts":[{"serviceref":"1:0:19:5104:841:2:11A0000:0:0:0:","servicename":"ITV1 HD","name":"Conflicting timer","begin":1763931000,"end":1763935200,"realbegin":"23.11.2025 21:50","realend":"23.11.2025 23:00"},{"serviceref":"1:0:19:1452:7F2:2:11A0000:0:0:0:","servicename":"Channel 4 HD","name":"Summerwater 25-11-23 1x04 Episode 04","begin":1763931000,"end":1763936400,"realbegin":"23.11.2025 21:50","realend":"23.11.2025 23:20"},{"serviceref":"1:0:19:1B13:802:2:11A0000:0:0:0:","servicename":"BBC One SE HD","name":"Prisoner 951 25-11-23 1x01 Episode 01","begin":1763931001,"end":1763937000,"realbegin":"23.11.2025 21:50","realend":"23.11.2025 23:30"}]}
+*/
       this.owitimerSvc.addTimer(params).subscribe({
          next: (res) => {
             console.log(ln + "changeTimerSync: add: next: result: %s", JSON.stringify(res));
+            if(!res.result)
+            {
+               this.showStatus(res.message, "Close");
+            }
+            else
+            {
+               this.router.navigate(["timerlist"]);
+            }
          },
          error: (err) => {
             console.log(ln + "changeTimerSync: add: Error: %s", JSON.stringify(err, null, 2));
+            this.showStatus(JSON.stringify(err), "Close");
             this.submitInProgress = false;
          },
          complete: () => {
             console.log(ln + "changeTimerSync: add: completed");
             this.submitInProgress = false;
+
          }
       });
    }
@@ -488,5 +506,10 @@ const name = currentNav.extras.state.name;
    {
       this.repdays[index].repeaton = repeaton;
       console.log(ln + "toggleChange: index: %d repeaton: %s", index, this.repdays[index].repeaton);
+   }
+
+   showStatus(msg : string, action : string)
+   {
+      this.snackBar.open(msg, action);
    }
 }
