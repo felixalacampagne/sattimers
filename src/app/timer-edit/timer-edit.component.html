@@ -21,13 +21,13 @@
                  <mat-datepicker #startdatepicker></mat-datepicker>
               </mat-form-field>
 
-               <mat-form-field appearance="outline" class="marginr10">
+               <mat-form-field appearance="outline" class="marginr10 timepick-width">
                   <mat-label>Start time</mat-label>
                   <input matInput [matTimepicker]="starttimepicker" (blur)="checkStartTime()" formControlName="starttime">
                   <mat-timepicker interval="5m" #starttimepicker/>
                   <mat-timepicker-toggle [for]="starttimepicker" matSuffix/>
                </mat-form-field>
-               <mat-form-field appearance="outline">
+               <mat-form-field appearance="outline" class="timepick-width">
                   <mat-label>End time</mat-label>
                   <input matInput [matTimepicker]="endtimepicker"  (blur)="checkEndTime()" formControlName="endtime">
                   <mat-timepicker interval="5m" #endtimepicker/>
@@ -50,13 +50,15 @@
                     <mat-option [value]="chan">{{ chan.servicename }}</mat-option>
                     }
                  </mat-select>
-              </mat-form-field>
-               <mat-label>Repeat</mat-label>
-               @for (repday of repdays; track repday; let i = $index)
-               {
-                  <mat-checkbox class="repeated" [checked]="repday.repeaton" (change)="updateRepeat($event.checked, i)">{{repday.name}}</mat-checkbox>
-               }
-
+               </mat-form-field>
+               <mat-label>Repeat:&nbsp;</mat-label>
+               <mat-button-toggle-group class="repeated" name="repeated" [hideMultipleSelectionIndicator]="true" multiple>
+                  @for (repday of repdays; track repday; let i = $index)
+                  {
+                     <!-- event.source is a MatToggleButton: https://v20.material.angular.dev/components/button-toggle/api#MatButtonToggleChange -->
+                     <mat-button-toggle [checked]="repday.repeaton" (change)="updateRepeat($event.source.checked, i)" [value]="i">{{repday.name}}</mat-button-toggle>
+                  }
+               </mat-button-toggle-group>
            </div>
         </div>
         <div class="row">

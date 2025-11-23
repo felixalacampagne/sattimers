@@ -55,3 +55,22 @@
 // {
 //   width: 20px
 // }
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+// values for shape from https://material.angular.dev/guide/theming-your-components#shape
+// NB there is NOTHING about shape in the v20 docs! Even in v21 docs there is no
+// hint about how to actually use the forking values.
+// FYI The shape setting only works when applied to the toggle group, the colours
+// work on both button and group. The class is currently being applied to only the group.
+.repeated {
+  @include mat.button-toggle-overrides((
+    background-color: rgba(255, 166, 0, 0.205),
+    selected-state-background-color: rgb(116, 228, 51),
+    shape: var(--mat-sys-corner-extra-small)
+  ));
+}
+
+.timepick-width
+{
+  width: 158px
+}

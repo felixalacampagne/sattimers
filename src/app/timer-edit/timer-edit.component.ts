@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DateAdapter, MAT_DATE_FORMATS, MatDateFormats, NativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -86,6 +87,7 @@ imports: [MatCardModule,
    MatTimepickerModule,
    MatIconModule,
    MatCheckboxModule,
+   MatButtonToggleModule,
    ReactiveFormsModule,
    FormsModule],
   templateUrl: './timer-edit.component.html',
@@ -200,15 +202,6 @@ const name = currentNav.extras.state.name;
             console.log(ln + "deleteTimer: pipe-tap: res:%s", JSON.stringify(res));
          }
       )));
-   }
-
-   updateRepeat(repeaton: boolean, index?: number)
-   {
-      if(index != undefined)
-      {
-         this.repdays[index].repeaton = repeaton;
-         //console.log(ln + "updateRepeat: repeated:%d", this.mapDaysToRepeated());
-      }
    }
 
    // Apparently there are no events raised by the controls in the HTML
@@ -402,6 +395,10 @@ const name = currentNav.extras.state.name;
       }
    }
 
+
+   // TODO This probably needs to change for button group as it does not
+   // look like repdays can be modified when the buttons are clicked so
+   // the state of the buttons needs to be used directly at submit time.
    mapDaysToRepeated() : number
    {
       let repeats : number = 0;
@@ -485,5 +482,11 @@ const name = currentNav.extras.state.name;
          chan = this.channels.find(c => c.servicereference == timer.serviceref);
       }
       return chan;
+   }
+
+   updateRepeat(repeaton : boolean, index : number)
+   {
+      this.repdays[index].repeaton = repeaton;
+      console.log(ln + "toggleChange: index: %d repeaton: %s", index, this.repdays[index].repeaton);
    }
 }
