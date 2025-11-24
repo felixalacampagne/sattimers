@@ -235,7 +235,13 @@ const name = currentNav.extras.state.name;
 
    updateStartTime(event : any)
    {
-      let t : Date = new Date( Date.parse(String(event)));
+      let sevent: string = String(event);
+      if(sevent == 'Invalid Date')
+      {
+         return;
+      }
+      let t : Date = new Date( Date.parse(sevent));
+
       let sd = this.editForm.value.startdate;
       let newstart : Date = this.calcStartDatetime(sd, t);
       let end : Date = this.calcEndDatetime(sd, t, this.editForm.value.endtime);
@@ -247,7 +253,15 @@ const name = currentNav.extras.state.name;
 
    updateEndTime(event : any)
    {
-      let t : Date = new Date( Date.parse(String(event)));
+      let sevent: string = String(event);
+      if(sevent == 'Invalid Date')
+      {
+         return;
+      }
+      let t : Date = new Date( Date.parse(sevent));
+      console.log(ln + "updateEndTime:"
+         + " event: " + t
+      );
       let sd : Date = this.editForm.value.startdate;
       let st : Date = this.editForm.value.starttime;
 
@@ -350,7 +364,12 @@ const name = currentNav.extras.state.name;
 
       if(this.origTimer != undefined)
       {
+         // Major problem with this when the updated timer has a conflict with existing
+         // timer because the original timer is deleted before the conflict is reported.
+         // No clue how to workaround that at the moment: maybe use refOld to add it back?
+
          console.log(ln + "changeTimerSync: deleting old timer");
+         // TODO Need to catch an error if the delete fails
          await this.deleteTimer(this.origTimer);
          console.log(ln + "changeTimerSync: adding updated timer");
       }
@@ -361,6 +380,9 @@ TimerEditCmp.changeTimerSync: add: next: result: {"result":false,"message":"Conf
       this.owitimerSvc.addTimer(params).subscribe({
          next: (res) => {
             console.log(ln + "changeTimerSync: add: next: result: %s", JSON.stringify(res));
+            // This is probably not the best way to do it but I cannot find any way
+            // to abort the subscription from within the next processing so it will have
+            // to do for now.
             if(!res.result)
             {
                this.showStatus(res.message, "Close");
@@ -397,7 +419,8 @@ TimerEditCmp.changeTimerSync: add: next: result: {"result":false,"message":"Conf
 
    public onCancel()
    {
-
+      // Wiil probably need to change this if I make the edit into a dialog
+      this.router.navigate(["timerlist"]);
    }
 
    public submitDisabled() : boolean

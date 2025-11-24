@@ -14,6 +14,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'timer-list',
@@ -48,6 +49,8 @@ landscapeDisplay: boolean = false;
 desktopDisplay: boolean = false;
 
 dialog = inject(MatDialog);
+private snackBar = inject(MatSnackBar); // new way instead of putting in constructor
+
 
    constructor(private timerService: OWITimersService,
       private deviceService: DeviceDetectorService,
@@ -190,7 +193,14 @@ dialog = inject(MatDialog);
             // try to re-add the same timer. Strangely it does not actually trigger a reload of the page
             // so must still make call to loadTimers which is lucky as it allows to pass the new timer
             // so it can be highlighted.
-            this.router.navigate([], { queryParams: {} });
+            // This is probably not the best way to do it but I cannot find any way
+            // to abort the subscription from within the next processing so it will have
+            // to do for now.
+            if(!res.result)
+            {
+               this.showStatus(res.message, "Close");
+            }
+            this.router.navigate([], { queryParams: {} }); // Will this make the status go away??
             this.loadTimers(timer);
          },
          error: (err)=>{
@@ -273,6 +283,12 @@ dialog = inject(MatDialog);
 
    getDuration(t : Timer) {
       return Math.ceil((t.end - t.begin)/60);
+   }
+
+
+   showStatus(msg : string, action : string)
+   {
+      this.snackBar.open(msg, action);
    }
 }
 

@@ -66,11 +66,70 @@
   @include mat.button-toggle-overrides((
     background-color: rgba(255, 166, 0, 0.205),
     selected-state-background-color: rgb(116, 228, 51),
-    shape: var(--mat-sys-corner-extra-small)
+    shape: var(--mat-sys-corner-extra-small),
   ));
 }
 
 .timepick-width
 {
-  width: 158px
+  width: 158px;
+}.datepick-width
+{
+  width: 212px;
 }
+
+
+// A bunch of stuff to try to emulate the frame around input
+// boxes drawn by mat-form-field which cannot be used for
+// button groups or checkboxes and there is no material
+// equivalent of a frame
+.outline-div
+{
+   margin-bottom: 20px;
+   width: 325px;
+}
+
+.outline-card
+{
+   border-radius: 4px;
+   border-style: solid;
+   border-width: 1px;
+   border-color: var(--mat-sys-outline);
+   background-color:var(--mat-sys-background);
+   box-shadow: none;
+}
+
+.outline-label
+{
+   position: absolute;
+   top: -9px;
+   left: 10px;
+   background-color:var(--mat-sys-background);
+   padding-left: 4px;
+   padding-right: 4px;
+
+   font-size: 9pt;
+   line-height: normal;
+   color: var(--mat-sys-on-surface-variant);
+}
+
+.outline-space
+{
+   padding-top:0px;
+   padding-bottom:0px;
+   margin-top:3px;
+   margin-bottom:1px;
+   padding-left: 12px;
+   padding-right: 2px;
+}
+
+// Almost impossible to adjust the size of the buttons, eg. to remove
+// the excessive amount of space around the text. Only way that was
+// successful was to change the density but then the size of the outline
+// cannot be adjusted to be the same as the channel outline, 1px margin
+// is too little, 2px margin is too much. In the end gave up an just have to
+// accept the ugly, wasteful, whitespace.
+//.repbutton-space
+//{
+//   @include mat.button-toggle-density(-3);
+//}
