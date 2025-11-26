@@ -3,51 +3,37 @@
    The timer editing component. It will be displayed as a dialog but is written
    without the dialog code so it could be included in its own page if
    it turns out to be better than way.
-   NB. It is based on the standing order dialog, mainly because that has two
-   date fields... although it is two datetime fields that are required here...
 -->
 <mat-card class="so-card" appearance="outlined">
    <mat-card-header class="so-card-head">
      <mat-card-title>Timer Edit</mat-card-title>
    </mat-card-header>
    <form [formGroup]="editForm" novalidate (ngSubmit)="onSubmit()">
-     <mat-card-content>
-        <div class="row">
-           <div class="col marginr10">
-              <mat-form-field appearance="outline" class="full-width">
-                 <mat-label>Start Date</mat-label>
-                 <input matInput [matDatepicker]="startdatepicker" placeholder="dd/mm/yyyy" formControlName="startdate">
-                 <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
-                 <mat-datepicker #startdatepicker></mat-datepicker>
-              </mat-form-field>
-            </div>
-            <div class="col">
-               <mat-form-field appearance="outline" class="marginr10 timepick-width">
+      <mat-card-content>
+         <div class="row">
+            <div class="col nowrap ">
+               <mat-form-field appearance="outline" class="leftpad marginr datepick-width">
+                  <mat-label>Start Date</mat-label>
+                  <input matInput [matDatepicker]="startdatepicker" placeholder="dd/mm/yyyy" formControlName="startdate">
+                  <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startdatepicker></mat-datepicker>
+               </mat-form-field>
+
+               <mat-form-field appearance="outline" class="leftpad marginr timepick-width">
                   <mat-label>Start time</mat-label>
                   <input matInput [matTimepicker]="starttimepicker" (blur)="checkStartTime()" formControlName="starttime">
                   <mat-timepicker-toggle [for]="starttimepicker" matSuffix/>
                   <mat-timepicker interval="5m" #starttimepicker/>
                </mat-form-field>
-               <mat-form-field appearance="outline" class="timepick-width">
+
+               <mat-form-field appearance="outline" class="leftpad timepick-width">
                   <mat-label>End time</mat-label>
                   <input matInput [matTimepicker]="endtimepicker"  (blur)="checkEndTime()" formControlName="endtime">
                   <mat-timepicker-toggle [for]="endtimepicker" matSuffix/>
                   <mat-timepicker interval="5m" #endtimepicker/>
                </mat-form-field>
-           </div>
-        </div>
-
-        <div class="row">   <!-- channel selector -->
-            <div class="col marginr10">
-              <mat-form-field  appearance="outline" class=" full-width">
-                 <mat-label>Channel</mat-label>
-                 <mat-select placeholder="Nothing" formControlName="channelid">
-                    @for (chan of channels; track chan) {
-                    <mat-option [value]="chan">{{ chan.servicename }}</mat-option>
-                    }
-                 </mat-select>
-               </mat-form-field>
             </div>
+
             <div class="col">
                <div class="outline-div">
                <mat-card class="outline-card">
@@ -66,27 +52,38 @@
                   <mat-card-footer class="outline-space"></mat-card-footer>
                </mat-card>
                </div>
-           </div>
-        </div>
-        <div class="row">
-            <div class="col">
-               <mat-form-field  appearance="outline" class="full-width">
-                  <mat-label>Name</mat-label>
-                  <input matInput placeholder="" formControlName="timername">
+            </div>
+         </div>
+         <div class="row">   <!-- channel selector -->
+            <div class="col full-width">
+               <mat-form-field  appearance="outline" class=" full-width ">
+                  <mat-label>Channel</mat-label>
+                  <mat-select placeholder="Nothing" formControlName="channelid">
+                     @for (chan of channels; track chan) {
+                        <mat-option [value]="chan">{{ chan.servicename }}</mat-option>
+                     }
+                  </mat-select>
                </mat-form-field>
             </div>
-        </div>
-
-      <!-- Original form contains additional items that I never use:
-               Action - always record
-               After event - always do nothing
-      -->
+         </div>
+         <div class="row">
+            <div class="col full-width">
+               <mat-form-field  appearance="outline" class="full-width ">
+                  <mat-label>Name</mat-label>
+                  <input class="leftpad" matInput placeholder="" formControlName="timername">
+               </mat-form-field>
+            </div>
+         </div>
+         <!-- Original form contains additional items that I never use:
+                  Action - always record
+                  After event - always do nothing
+         -->
       </mat-card-content>
       <mat-card-actions>
          <div class="actions-card-right">
-            <button class="marginr10" mat-stroked-button type="reset" (click)="onCancel()">Cancel</button>
+            <button class="marginr" mat-stroked-button type="reset" (click)="onCancel()">Cancel</button>
             <button mat-flat-button type="submit" [disabled]="submitDisabled()">Submit</button>
          </div>
       </mat-card-actions>
-  </form>
+   </form>
 </mat-card>

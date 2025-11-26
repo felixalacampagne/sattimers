@@ -224,6 +224,11 @@ private snackBar = inject(MatSnackBar); // new way instead of putting in constru
       // window.open("timeredit.htm?sRef=" + escape(sRef) + "&begin=" + begin + "&end=" + end +  nocache("&"), "_self");
    }
 
+   newTimer()
+   {
+      this.router.navigate(["timeredit"]);
+   }
+
    deletetimer(timer: Timer)
    {
       // console.log("TimerListComponent.deletetimer: Starting");

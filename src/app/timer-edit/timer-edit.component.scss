@@ -1,36 +1,57 @@
 @use '@angular/material' as mat;
+
+.mat-mdc-card-content
+{
+   padding: 0 10px;
+}
+
+// see https://css-tricks.com/snippets/css/a-guide-to-flexbox/ for flex box help
+// This is the 'flex' container
 .row
 {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   margin-top: 0px;
   margin-bottom: 0px;
-}
-
-.col {
-  flex: 1;
-}
-
-.col:last-child {
-  margin-right: 0;
-}
-
-.full-width {
   width: 100%;
+  gap: 10px;
+}
+
+// this is the 'flex' item
+.col {
+   // required to keep everything on the left but causes channel/name not to fill row unless width:100% is added to col
+   flex: 0 0 auto;
+}
+
+// Stop the content of 'col' from wrapping
+.nowrap  {
+   white-space: nowrap;
+}
+
+.full-width  // required to get the channel/name boxes to fill the width
+{
+   width: 100%;
 }
 
 .width3 {
    width: 33%;
 }
 
-.marginr10
+.marginr
 {
-   margin-right:10px;
+   margin-right:5px;
+}
+
+.mat-mdc-card-actions  // required to get buttons on the right
+{
+   display:inline;
+   margin-top: 0px;
 }
 
 .actions-card-right
 {
-   display: inline;
    float: right;
    margin-bottom: 10px;
    margin-right: 10px
@@ -41,20 +62,6 @@
    display: inline;
    margin-bottom: 10px;
 }
-
- // https://material.angular.dev/components/checkbox/styling
-//.repeated {
-//   @include mat.checkbox-overrides((
-//      touch-target-size:10px,
-//      label-text-color: orange,
-//      selected-icon-color: red,
-//   ));
-// }
-//
-// .mdc-checkbox
-// {
-//   width: 20px
-// }
 
 // Customize the entire app. Change :root to your selector if you want to scope the styles.
 // values for shape from https://material.angular.dev/guide/theming-your-components#shape
@@ -69,15 +76,6 @@
     shape: var(--mat-sys-corner-extra-small),
   ));
 }
-
-.timepick-width
-{
-  width: 158px;
-}.datepick-width
-{
-  width: 212px;
-}
-
 
 // A bunch of stuff to try to emulate the frame around input
 // boxes drawn by mat-form-field which cannot be used for
@@ -119,7 +117,7 @@
    padding-bottom:0px;
    margin-top:3px;
    margin-bottom:1px;
-   padding-left: 12px;
+   padding-left: 14px;
    padding-right: 2px;
 }
 
@@ -133,3 +131,17 @@
 //{
 //   @include mat.button-toggle-density(-3);
 //}
+
+// No way to reduce the left padding in mat-form-field so that
+// the date/times fit in the iphone display
+
+.timepick-width
+{
+  width: 105px;
+}
+
+.datepick-width
+{
+  width: 150px;
+}
+
