@@ -1,5 +1,16 @@
 @use '@angular/material' as mat;
 
+.te-card
+{
+   background-color:var(--mat-sys-surface); // something to put in placeholder class
+}
+
+.te-card-head
+{
+   margin: 0; // something to put in placeholder class
+   color: var(--mat-sys-primary);
+}
+
 .mat-mdc-card-content
 {
    padding: 0 10px;
@@ -71,9 +82,11 @@
 // work on both button and group. The class is currently being applied to only the group.
 .repeated {
   @include mat.button-toggle-overrides((
-    background-color: rgba(255, 166, 0, 0.205),
-    selected-state-background-color: rgb(116, 228, 51),
-    shape: var(--mat-sys-corner-extra-small),
+   text-color: var(--mat-sys-primary),
+   background-color: var(--mat-sys-on-primary),
+   selected-state-text-color: var(--mat-sys-on-primary),
+   selected-state-background-color: var(--mat-sys-primary),
+   shape: var(--mat-sys-corner-extra-small),
   ));
 }
 
@@ -125,7 +138,7 @@
 // the excessive amount of space around the text. Only way that was
 // successful was to change the density but then the size of the outline
 // cannot be adjusted to be the same as the channel outline, 1px margin
-// is too little, 2px margin is too much. In the end gave up an just have to
+// is too little, 2px margin is too much. In the end gave up and just have to
 // accept the ugly, wasteful, whitespace.
 //.repbutton-space
 //{
