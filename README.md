@@ -1,23 +1,21 @@
-Handy commands:
+## VS Code plugins
 
-```
-git diff --ignore-cr-at-eol --ignore-space-at-eol >patch.diff
-git apply --whitespace=fix --ignore-whitespace --reject patch.diff
-patch --ignore-whitespace -p1 < patch.diff
-```
+CSS Navigation - https://marketplace.visualstudio.com/items?itemName=pucelle.vscode-css-navigation
+  Allows navigation to CSS class definition from a usage using Ctrl-click. Maybe doesn't respect the
+  'active' .CSS files, eg. as defined in the component which references the HTML page, but is still very useful.
 
 # Sattimers
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.2.
 
-16 Nov 2025 Things have progressed to the stage where I have a working, presentable timer list with 
+16 Nov 2025 Things have progressed to the stage where I have a working, presentable timer list with
 usable delete on the phone, which is what I was most interested in. Thus the angular version of
 sattimers is slowly replacing the old Ajax version. Timer edit is still a work in progress - adding a timer
-has been shown to work, and the edit page can be opened a timer details from the list. The edit page UI is 
-somewhat more complex than the list and while trying to bend the components into something vaugely usable I've once again hit the problem that Google searches goto a page for a different version of Angular and switching to the correct version looses the relevant page - you'd think that providers of a UI library would have a better idea of how to provide a UI... mind you the stuff they provide is so convoluted and difficult to use I guess that maybe they don't. 
+has been shown to work, and the edit page can be opened a timer details from the list. The edit page UI is
+somewhat more complex than the list and while trying to bend the components into something vaugely usable I've once again hit the problem that Google searches goto a page for a different version of Angular and switching to the correct version looses the relevant page - you'd think that providers of a UI library would have a better idea of how to provide a UI... mind you the stuff they provide is so convoluted and difficult to use I guess that maybe they don't.
 
 So, before descending once more into the rabbit hole of trying to make a usable UI using Angular and Material, I have decided that the upgrade to the current default version of the angular documentation is
-required to stop me becoming demented trying to figure out how to get things to work. 
+required to stop me becoming demented trying to figure out how to get things to work.
 
 Therefore this version in main is not a fully working of the timer edit, rather a pre-Angular update version...
 
@@ -44,6 +42,14 @@ make a query from a page at server X to a web api at server Y unless something i
 I have no way to modify the OpenWebIf server code to force it to provide the CORS shirt necessary - so
 once again normal people just trying to do perfectly legitimate things are shafted in the interest
 of so called 'security'.
+
+## Handy commands:
+
+```
+git diff --ignore-cr-at-eol --ignore-space-at-eol >patch.diff
+git apply --whitespace=fix --ignore-whitespace --reject patch.diff
+patch --ignore-whitespace -p1 < patch.diff
+```
 
 ## Development server
 
@@ -100,4 +106,5 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
 

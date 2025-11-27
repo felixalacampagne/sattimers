@@ -1,0 +1,32 @@
+{
+    "workbench.colorTheme": "Default Light Modern",
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "editor.minimap.enabled": false,
+    "git.openRepositoryInParentFolders": "always",
+    "git.confirmSync": false,
+    "files.trimTrailingWhitespace": true,
+    "[diff]": {"files.trimTrailingWhitespace": false},
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.diff": "default"
+    },
+    "editor.renderWhitespace": "trailing",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.autoClosingBrackets": "never",
+    "editor.suggestOnTriggerCharacters": false,
+    "editor.hover.delay": 1500,
+    "workbench.hover.delay": 1500,
+    "editor.quickSuggestionsDelay": 1500,
+    "editor.autoSurround": "never",
+    "window.openFilesInNewWindow": "on",
+    "editor.autoClosingQuotes": "never",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingComments": "never",
+    "editor.gotoLocation.multipleDefinitions": "goto",
+    "editor.gotoLocation.multipleTypeDefinitions": "goto",
+    "editor.inlineSuggest.minShowDelay": 1500,
+    "editor.parameterHints.enabled": false,
+    "java.inlayHints.parameterNames.enabled": "none",
+    "workbench.editor.wrapTabs": true,
+    "html.autoCreateQuotes": false
+}

@@ -1,5 +1,36 @@
 // src/app/timer-list/timer-list.component.scss
-.row {
+
+.header
+{
+   margin-top: 0px;
+   margin-bottom: 0px;
+   block-size: 50px;
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+}
+
+.header-left
+{
+   // display: inline-block; not needed for 'flex'
+   margin-left: 5px;
+}
+
+.header-right
+{
+   // display: inline-block; not needed for 'flex'
+   margin-right: 5px;
+}
+
+.timerlist  // To make the table scrollable in case of many timers
+{
+   display: block;
+   width: 100%;
+   overflow: auto;
+ }
+
+ .row
+ {
    height: 30px;
    margin-top: 0px;
    margin-bottom: 0px;
@@ -189,4 +220,3 @@ tr.timer-detail-row {
    display: inline;
    margin-bottom: 10px;
 }
-

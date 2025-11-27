@@ -1,0 +1,160 @@
+@use '@angular/material' as mat;
+
+.te-card
+{
+   background-color:var(--mat-sys-surface); // something to put in placeholder class
+}
+
+.te-card-head
+{
+   margin: 0; // something to put in placeholder class
+   color: var(--mat-sys-primary);
+}
+
+.mat-mdc-card-content
+{
+   padding: 0 10px;
+}
+
+// see https://css-tricks.com/snippets/css/a-guide-to-flexbox/ for flex box help
+// This is the 'flex' container
+.row
+{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  width: 100%;
+  gap: 10px;
+}
+
+// this is the 'flex' item
+.col {
+   // required to keep everything on the left but causes channel/name not to fill row unless width:100% is added to col
+   flex: 0 0 auto;
+}
+
+// Stop the content of 'col' from wrapping
+.nowrap  {
+   white-space: nowrap;
+}
+
+.full-width  // required to get the channel/name boxes to fill the width
+{
+   width: 100%;
+}
+
+.width3 {
+   width: 33%;
+}
+
+.marginr
+{
+   margin-right:5px;
+}
+
+.mat-mdc-card-actions  // required to get buttons on the right
+{
+   display:inline;
+   margin-top: 0px;
+}
+
+.actions-card-right
+{
+   float: right;
+   margin-bottom: 10px;
+   margin-right: 10px
+}
+
+.actions-card-left
+{
+   display: inline;
+   margin-bottom: 10px;
+}
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+// values for shape from https://material.angular.dev/guide/theming-your-components#shape
+// NB there is NOTHING about shape in the v20 docs! Even in v21 docs there is no
+// hint about how to actually use the forking values.
+// FYI The shape setting only works when applied to the toggle group, the colours
+// work on both button and group. The class is currently being applied to only the group.
+.repeated {
+  @include mat.button-toggle-overrides((
+   text-color: var(--mat-sys-primary),
+   background-color: var(--mat-sys-on-primary),
+   selected-state-text-color: var(--mat-sys-on-primary),
+   selected-state-background-color: var(--mat-sys-primary),
+   shape: var(--mat-sys-corner-extra-small),
+  ));
+}
+
+// A bunch of stuff to try to emulate the frame around input
+// boxes drawn by mat-form-field which cannot be used for
+// button groups or checkboxes and there is no material
+// equivalent of a frame
+.outline-div
+{
+   margin-bottom: 20px;
+   width: 325px;
+}
+
+.outline-card
+{
+   border-radius: 4px;
+   border-style: solid;
+   border-width: 1px;
+   border-color: var(--mat-sys-outline);
+   background-color:var(--mat-sys-background);
+   box-shadow: none;
+}
+
+.outline-label
+{
+   position: absolute;
+   top: -9px;
+   left: 10px;
+   background-color:var(--mat-sys-background);
+   padding-left: 4px;
+   padding-right: 4px;
+
+   font-size: 9pt;
+   line-height: normal;
+   color: var(--mat-sys-on-surface-variant);
+}
+
+.outline-space
+{
+   padding-top:0px;
+   padding-bottom:0px;
+   margin-top:3px;
+   margin-bottom:1px;
+   padding-left: 14px;
+   padding-right: 2px;
+}
+
+// Almost impossible to adjust the size of the buttons, eg. to remove
+// the excessive amount of space around the text. Only way that was
+// successful was to change the density but then the size of the outline
+// cannot be adjusted to be the same as the channel outline, 1px margin
+// is too little, 2px margin is too much. In the end gave up and just have to
+// accept the ugly, wasteful, whitespace.
+//.repbutton-space
+//{
+//   @include mat.button-toggle-density(-3);
+//}
+
+// No way to reduce the left padding in mat-form-field so that
+// the date/times fit in the iphone display
+
+.timepick-width
+{
+  width: 105px;
+}
+
+.datepick-width
+{
+  width: 150px;
+}
+

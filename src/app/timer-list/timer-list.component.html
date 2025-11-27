@@ -1,4 +1,12 @@
 <!-- src/app/timer-list/timer-list.component.html -->
+<div class="header">
+      <div class="header-left">
+       <h4>{{utils.titlePrefix()}} Timer List</h4>
+      </div>
+      <div class="header-right">
+         <button (click)="newTimer()" matButton="filled">Add Timer</button>
+      </div>
+</div>
 <div class="timerlist" *ngIf="timers">
    <table mat-table [dataSource]="timers" class="mat-elevation-z8" multiTemplateDataRows>
 

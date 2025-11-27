@@ -3,94 +3,87 @@
    The timer editing component. It will be displayed as a dialog but is written
    without the dialog code so it could be included in its own page if
    it turns out to be better than way.
-   NB. It is based on the standing order dialog, mainly because that has two
-   date fields... although it is two datetime fields that are required here...
 -->
-<mat-card class="so-card" appearance="outlined">
-   <mat-card-header class="so-card-head">
+<mat-card class="te-card" appearance="outlined">
+   <mat-card-header class="te-card-head">
      <mat-card-title>Timer Edit</mat-card-title>
    </mat-card-header>
    <form [formGroup]="editForm" novalidate (ngSubmit)="onSubmit()">
-     <mat-card-content>
-      <!-- Original form has a datepicker for the start date and two dropdowns for the HH and mm
-           where the MM are in 5min increments
-           The end time is five dropdowns for YYYY, MM, DD and HH mm. I think the date is
-           probably restricted to not being less than currently selected start time.
-           Don't think I want to do it like this but currently don't have an idea how I will do it...
-      -->
+      <mat-card-content>
+         <div class="row">
+            <div class="col nowrap ">
+               <mat-form-field appearance="outline" class="marginr datepick-width">
+                  <mat-label>Start Date</mat-label>
+                  <input matInput [matDatepicker]="startdatepicker" placeholder="dd/mm/yyyy" formControlName="startdate">
+                  <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startdatepicker></mat-datepicker>
+               </mat-form-field>
 
-         <!-- these need to include the time!! -->
-        <div class="row">
-           <div class="col">
-              <mat-form-field appearance="outline">
-                 <mat-label>Start Date</mat-label>
-                 <input matInput [matDatepicker]="startdatepicker" (dateChange)="updateStart($event)" placeholder="dd/mm/yyyy" formControlName="startdate">
-                 <mat-datepicker-toggle matIconSuffix [for]="startdatepicker"></mat-datepicker-toggle>
-                 <mat-datepicker #startdatepicker></mat-datepicker>
-              </mat-form-field>
-
-               <mat-form-field appearance="outline">
+               <mat-form-field appearance="outline" class="marginr timepick-width">
                   <mat-label>Start time</mat-label>
-                  <input matInput [matTimepicker]="starttimepicker" (dateChange)="updateStart($event)" formControlName="startdate">
-                  <mat-timepicker interval="5m" #starttimepicker/>
+                  <input matInput [matTimepicker]="starttimepicker" (blur)="checkStartTime()" formControlName="starttime">
                   <mat-timepicker-toggle [for]="starttimepicker" matSuffix/>
+                  <mat-timepicker interval="5m" #starttimepicker/>
                </mat-form-field>
-               <mat-form-field appearance="outline">
+
+               <mat-form-field appearance="outline" class="timepick-width">
                   <mat-label>End time</mat-label>
-                  <input matInput [matTimepicker]="endtimepicker" (dateChange)="updateEnd($event)" formControlName="enddate">
-                  <mat-timepicker interval="5m" #endtimepicker/>
+                  <input matInput [matTimepicker]="endtimepicker"  (blur)="checkEndTime()" formControlName="endtime">
                   <mat-timepicker-toggle [for]="endtimepicker" matSuffix/>
+                  <mat-timepicker interval="5m" #endtimepicker/>
                </mat-form-field>
-           </div>
+            </div>
 
-         <!-- Might be worth considering just an end time, a time less than start time meaning the next day.
-              Most recordings are on the same day so very tedious to have to enter the end day.
-              Recording should probably limited to 4 or 5 hours anyway so no risk of abiguity for the end time.
-
-              Need to initialise the date/time to either the timer to be edited or 'now' (or 12:00 midday)
-           -->
-        </div>
-
-        <!-- Day checkboxes for repeats  -->
-        <div class="row">
-           <div class="col">
-               <mat-label>Repeat</mat-label>
-               @for (repday of repdays; track repday; let i = $index)
-               {
-                  <mat-checkbox [checked]="repday.repeaton" (change)="updateRepeat($event.checked, i)">{{repday.name}}</mat-checkbox>
-               }
-           </div>
-        </div>
-
-        <div class="row">   <!-- channel selector -->
-         <div class="col">
-              <mat-form-field  appearance="outline" class="full-width">
-                 <mat-label>Channel</mat-label>
-                 <mat-select placeholder="Nothing" formControlName="channelid">
-                    @for (chan of channels; track chan) {
-                    <mat-option [value]="chan">{{ chan.servicename }}</mat-option>
-                    }
-                 </mat-select>
-              </mat-form-field>
-           </div>
-        </div>
-        <div class="row">
-           <mat-form-field  appearance="outline" class="full-width">
-              <mat-label>Name</mat-label>
-              <input matInput placeholder="" formControlName="timername">
-           </mat-form-field>
-        </div>
-
-      <!-- Original form contains additional items that I never use:
-               Action - always record
-               After event - always do nothing
-      -->
+            <div class="col">
+               <div class="outline-div">
+               <mat-card class="outline-card">
+                  <mat-card-header class="outline-space">
+                     <mat-card-title class="outline-label">Repeat</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content class="outline-space">
+                     <mat-button-toggle-group class="repeated" name="repeated" [hideMultipleSelectionIndicator]="true" multiple>
+                        @for (repday of repdays; track repday; let i = $index)
+                        {
+                           <!-- event.source is a MatToggleButton: https://v20.material.angular.dev/components/button-toggle/api#MatButtonToggleChange -->
+                           <mat-button-toggle class="repbutton-space" [checked]="repday.repeaton" (change)="updateRepeat($event.source.checked, i)" [value]="i">{{repday.name}}</mat-button-toggle>
+                        }
+                     </mat-button-toggle-group>
+                  </mat-card-content>
+                  <mat-card-footer class="outline-space"></mat-card-footer>
+               </mat-card>
+               </div>
+            </div>
+         </div>
+         <div class="row">   <!-- channel selector -->
+            <div class="col full-width">
+               <mat-form-field  appearance="outline" class=" full-width ">
+                  <mat-label>Channel</mat-label>
+                  <mat-select placeholder="Nothing" formControlName="channelid">
+                     @for (chan of channels; track chan) {
+                        <mat-option [value]="chan">{{ chan.servicename }}</mat-option>
+                     }
+                  </mat-select>
+               </mat-form-field>
+            </div>
+         </div>
+         <div class="row">
+            <div class="col full-width">
+               <mat-form-field  appearance="outline" class="full-width ">
+                  <mat-label>Name</mat-label>
+                  <input class="leftpad" matInput placeholder="" formControlName="timername">
+               </mat-form-field>
+            </div>
+         </div>
+         <!-- Original form contains additional items that I never use:
+                  Action - always record
+                  After event - always do nothing
+         -->
       </mat-card-content>
       <mat-card-actions>
          <div class="actions-card-right">
-            <button mat-stroked-button type="reset" (click)="onCancel()">Cancel</button>
-            <button mat-flat-button type="submit" [disabled]="!editForm.valid">Submit</button>
+            <button class="marginr" mat-stroked-button type="reset" (click)="onCancel()">Cancel</button>
+            <button mat-flat-button type="submit" [disabled]="submitDisabled()">Submit</button>
          </div>
       </mat-card-actions>
-  </form>
+   </form>
 </mat-card>
