@@ -5,7 +5,11 @@ git diff --ignore-cr-at-eol --ignore-space-at-eol >patch.diff
 git apply --whitespace=fix --ignore-whitespace --reject patch.diff
 patch --ignore-whitespace -p1 < patch.diff
 ```
+# VS Code plugins
 
+CSS Navigation - https://marketplace.visualstudio.com/items?itemName=pucelle.vscode-css-navigation
+  Allows navigation to CSS class definition from a usage using Ctrl-click. Maybe doesn't respect the
+  'active' .CSS files, eg. as defined in the component which references the HTML page, but is still very useful.
 # Sattimers
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.2.
@@ -100,4 +104,5 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
 
