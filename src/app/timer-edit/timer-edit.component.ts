@@ -259,9 +259,9 @@ const name = currentNav.extras.state.name;
          return;
       }
       let t : Date = new Date( Date.parse(sevent));
-      console.log(ln + "updateEndTime:"
-         + " event: " + t
-      );
+      // console.log(ln + "updateEndTime:"
+      //    + " event: " + t
+      // );
       let sd : Date = this.editForm.value.startdate;
       let st : Date = this.editForm.value.starttime;
 
@@ -278,14 +278,22 @@ const name = currentNav.extras.state.name;
    {
       let st : Date = this.editForm.value.starttime;
       let rd = this.roundstartTime(st);
-      this.editForm.patchValue({starttime: rd});
+      if(rd.getTime() != st.getTime())
+      {
+         console.log(ln + "checkStartTime: adjust time from %s to %s", this.formatTime(st), this.formatTime(rd));
+         this.editForm.patchValue({starttime: rd});
+      }
    }
 
    checkEndTime()
    {
       let et : Date = this.editForm.value.endtime;
       let rd = this.roundendTime(et);
-      this.editForm.patchValue({endtime: rd});
+      if(rd.getTime() != et.getTime())
+      {
+         console.log(ln + "checkEndTime: adjust time from %s to %s", this.formatTime(et), this.formatTime(rd));
+         this.editForm.patchValue({endtime: rd});
+      }
    }
 
    roundstartTime(starttime : Date) : Date
@@ -299,7 +307,7 @@ const name = currentNav.extras.state.name;
    roundendTime(endtime : Date) : Date
    {
       let rd = roundToNearestMinutes(endtime, {nearestTo: 5, roundingMethod: 'ceil'});
-      console.log(ln + "roundstartTime: orig: %s rounded: %s", this.formatTime(endtime), this.formatTime(rd));
+      // console.log(ln + "roundendTime: orig: %s rounded: %s", this.formatTime(endtime), this.formatTime(rd));
       return rd;
    }
 
