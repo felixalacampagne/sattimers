@@ -19,11 +19,14 @@ export class OWITimersService {
    private serverhost : string = "";
    private apiurl : string ='';
    private apiapp : string = "";
+
+   // see https://github.com/E2OpenPlugins/e2openplugin-OpenWebif/wiki/OpenWebif-API-documentation#services-and-epg
    private timerlistapi : string ="timerlist";
    private timerdeleteapi : string = "timerdelete";
    private timeraddapi = "timeradd";
    private timerchangeapi = "timerchange";
-   private channelapi = "getallservices";
+   private allchannellistapi = "getallservices"; // returns services for all bouquets
+   private channellistapi = "getservices";       // returns services for a single bouquet
 
 
    constructor(private http : HttpClient)
@@ -156,11 +159,50 @@ export class OWITimersService {
       return Date.now();
    }
 
+   getFavouritesChannelList() : Observable<Channel[]>
+   {
+      let url : string;
+      let htparams : HttpParams = new HttpParams();
+
+
+      url = this.apiurl + this.channellistapi;
+      htparams = htparams.append("sRef", '1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.favourites.tv" ORDER BY bouquet');
+      htparams = htparams.append("nocache", this.nocacheval());
+
+      // params encode to;
+      // api/getservices?sRef=1:7:1:0:0:0:0:0:0:0:FROM%20BOUQUET%20%22userbouquet.favourites.tv%22%20ORDER%20BY%20bouquet
+
+      // in fact it is not clear how to actually use this api
+      // it refers to an optional sRef parameter but sRef can apparently either be
+      // an actual serviceref for a single channel, eg. 1:0:19:2B8E:3F2:1:C00000:0:0:0:
+      // or something like a query which gives a list of channels for a bouquet, eg.
+      // '1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.favourites.tv" ORDER BY bouquet'
+      // I guess it is usable as a GET since the getallservices is used that way
+
+
+
+      return this.http.get(url, {params: htparams, responseType: 'text'})
+         .pipe( map((res:any) =>
+         {
+            res = this.stripAngular20GarbageFromResponse(res);
+
+            let channels : Channel[] = [];
+            let bouquet : string = "Favourites (TV)";
+            // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
+
+            // This is probably not correct - requires some trial and error....
+            let services : ChannelList = res;
+            let service : Service = services.services[0];
+            channels = service.subservices;
+            return channels;
+         }));
+   }
+
    getChannelList() : Observable<Channel[]>
    {
       let url : string;
 
-      url = this.apiurl + this.channelapi;
+      url = this.apiurl + this.allchannellistapi;
 
       return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
          .pipe( map((res:any) =>

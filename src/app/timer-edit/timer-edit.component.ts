@@ -193,7 +193,7 @@ const name = currentNav.extras.state.name;
 
    async loadChannels()
    {
-      return await lastValueFrom(this.owitimerSvc.getChannelList()
+      return await lastValueFrom(this.owitimerSvc.getFavouritesChannelList() // getChannelList()
          .pipe(tap(res => {
             console.log(ln + "loadChannels: pipe-tap");
             this.channels = res;
