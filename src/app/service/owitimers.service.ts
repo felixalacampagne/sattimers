@@ -7,7 +7,7 @@ import { TimerList } from '../model/timerlist.model';
 import { environment } from '../../environments/environment';
 import { Timer } from '../model/timer.model';
 import { Channel } from '../model/channel.model';
-import { ChannelList, Service } from '../model/channellist.model';
+import { Bouquet, BouquetList, ChannelList } from '../model/channellist.model';
 
 const ln  = "OWITimersSvc.";
 
@@ -187,13 +187,9 @@ export class OWITimersService {
             res = this.stripAngular20GarbageFromResponse(res);
 
             let channels : Channel[] = [];
-            let bouquet : string = "Favourites (TV)";
-            // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
-
             // This is probably not correct - requires some trial and error....
-            let services : ChannelList = res;
-            let service : Service = services.services[0];
-            channels = service.subservices;
+            let channellist : ChannelList = res;
+            channels = channellist.services;
             return channels;
          }));
    }
@@ -212,10 +208,10 @@ export class OWITimersService {
             let channels : Channel[] = [];
             let bouquet : string = "Favourites (TV)";
             // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
-            let services : ChannelList = res;
+            let services : BouquetList = res;
             for (var id in services.services)
             {
-               let service : Service = services.services[id];
+               let service : Bouquet = services.services[id];
                if(service.servicename == bouquet)
                {
                   channels = service.subservices;
