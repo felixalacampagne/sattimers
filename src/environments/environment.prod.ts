@@ -8,4 +8,5 @@ export const environment = {
    envName: ' (JLIVE)',
    uiversion: ' v0.1',
    folder: '',
+   api_ext: ''
  };

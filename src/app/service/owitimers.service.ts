@@ -19,6 +19,7 @@ export class OWITimersService {
    private serverhost : string = "";
    private apiurl : string ='';
    private apiapp : string = "";
+   private apiext : string = "";
 
    // see https://github.com/E2OpenPlugins/e2openplugin-OpenWebif/wiki/OpenWebif-API-documentation#services-and-epg
    private timerlistapi : string ="timerlist";
@@ -38,14 +39,16 @@ export class OWITimersService {
       // window.location
       //    .host     gives server and port (in theory)
       //    .origin   gives the protocol, hostname and port number of a URL
-      if((typeof environment.api_host !== 'undefined') && (environment.api_host))
+      if(environment.api_host.length > 0)
       {
-            this.serverhost = environment.api_host;
+         this.serverhost = environment.api_host;
       }
       else
       {
          this.serverhost = window.location.origin;
       }
+
+      this.apiext = environment.api_ext;
       this.apiapp = environment.folder + environment.api_app;
       this.apiurl = this.serverhost + this.apiapp
       console.log(ln + "<init>: API url: %s", this.apiurl);
@@ -54,7 +57,7 @@ export class OWITimersService {
    getTimerList() : Observable<TimerList>
    {
       let url : string;
-      url = this.apiurl + this.timerlistapi;
+      url = this.makeApiname(this.timerlistapi);
       // this fails when the client pages are not served from the sat box: CORS shirt designed to prevent
       // normal users from doing anything useful with the code.
       // The sat box server does actually set the allowed origin to be anything ('*') but apparently
@@ -62,8 +65,11 @@ export class OWITimersService {
       // The only suggestion of a workaround for this might be to add '{ withCredentials: false }' to the get, after the
       // url. All other so-called solutions require changes to the server, which obviously can't be done when trying
       // to access a 'public' web api.
-      return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
-         .pipe( map((res:string) => this.stripAngular20GarbageFromResponse(res)) );
+      return this.http.get(url, {params: {nocache: this.nocacheval()}})
+         .pipe( map((res:any) =>
+            // this.stripAngular20GarbageFromResponse(res)
+         res
+      ) );
    }
 
    // Following "upgrade" to Angular20 the JSON data in the repsonse from 'ng serve'
@@ -165,7 +171,7 @@ export class OWITimersService {
       let htparams : HttpParams = new HttpParams();
 
 
-      url = this.apiurl + this.channellistapi;
+      url = this.makeApiname(this.channellistapi);
       htparams = htparams.append("sRef", '1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.favourites.tv" ORDER BY bouquet');
       htparams = htparams.append("nocache", this.nocacheval());
 
@@ -181,10 +187,10 @@ export class OWITimersService {
 
 
 
-      return this.http.get(url, {params: htparams, responseType: 'text'})
+      return this.http.get(url, {params: htparams})
          .pipe( map((res:any) =>
          {
-            res = this.stripAngular20GarbageFromResponse(res);
+            // res = this.stripAngular20GarbageFromResponse(res);
 
             let channels : Channel[] = [];
             // This is probably not correct - requires some trial and error....
@@ -198,12 +204,12 @@ export class OWITimersService {
    {
       let url : string;
 
-      url = this.apiurl + this.allchannellistapi;
+      url = this.makeApiname(this.allchannellistapi);
 
-      return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
+      return this.http.get(url, {params: {nocache: this.nocacheval()}})
          .pipe( map((res:any) =>
          {
-            res = this.stripAngular20GarbageFromResponse(res);
+            // res = this.stripAngular20GarbageFromResponse(res);
 
             let channels : Channel[] = [];
             let bouquet : string = "Favourites (TV)";
@@ -220,5 +226,23 @@ export class OWITimersService {
             }
             return channels;
          }));
+   }
+
+   makeApiname(api : string) : string
+   {
+      // Since Angular 20 files in the assets directory without an extension are served
+      // with garbage at the end of the file making them unparsable as JSON files.
+      // One workaround is to handle every response as a pure text, remove the garbage
+      // and then parse as JSON (used by sattimers). This is a very annoying thing to
+      // need to do for all the api of account and defeats the purpose of having the
+      // parsing handled automatically.
+      //
+      // It appears that giving the test data file and extension of .json prevents the
+      // garbage from being appended to the respone and thus allows the automatic
+      // to be performed. Obviously the actual apis should not be given an extension
+      // but using the environment file allows the extension to be added only when
+      // running in the backend less test environment. It still requires all api calls
+      // to be updated but not as annoying as converting everything to text.
+      return this.apiurl + api + this.apiext;
    }
 }

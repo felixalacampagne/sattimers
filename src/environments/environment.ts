@@ -6,4 +6,5 @@ export const environment = {
    envName: ' TEST',
    uiversion: ' v0.1',
    folder: '/assets',
+   api_ext: '.json'
  };
