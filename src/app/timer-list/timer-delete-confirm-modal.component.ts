@@ -1,6 +1,6 @@
 // src/app/timer-list/timer-delete-confirm-modal.component.ts
 
-// copilot generated base boilerplate 
+// copilot generated base boilerplate
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
@@ -19,10 +19,10 @@ export interface TimerDeleteDialogData {
       MatCardModule,
       MatIconModule,
       MatButtonModule
-   ],   
+   ],
    template: `
    <mat-card appearance="outlined">
-      <mat-card-header> 
+      <mat-card-header>
          <mat-card-title>
             <div class="title-card-left">Delete Timer</div>
             <div class="title-card-right">
@@ -30,15 +30,15 @@ export interface TimerDeleteDialogData {
                   <mat-icon fontSet="material-symbols-rounded">close</mat-icon>
                </button>
             </div>
-            </mat-card-title>      
+            </mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
             <strong>
-            <span style="text-align: center">{{data.name}}<BR> 
+            <span style="text-align: center">{{data.name}}<BR>
             {{utils.formatTimerDate(data.begin)}} {{utils.formatTimerTime(data.begin)}}</span>
          </strong>
-       
+
       </mat-card-content>
       <mat-card-actions align='end'>
          <button mat-stroked-button class="action-button" type="reset" (click)="onCancel()">Cancel</button>
@@ -48,8 +48,15 @@ export interface TimerDeleteDialogData {
    `,
    styleUrls: ['../../styles.scss',
       './timer-list.component.scss'
-   ]
+   ],
+   host: {
+      '(body:keyup.d)': 'keybdDelete($event)',
+      '(body:keyup.delete)': 'keybdDelete($event)',
+      '(body:keyup.backspace)': 'keybdDelete($event)',
+      '(body:keydown.control.d)': 'keybdDelete($event)' // must use keydown to override browser (Opera) action (add bookmark????)
+   }
 })
+
 export class TimerDeleteConfirmModalComponent {
    constructor(
       public dialogRef: MatDialogRef<TimerDeleteConfirmModalComponent>,
@@ -59,6 +66,16 @@ export class TimerDeleteConfirmModalComponent {
 
    onCancel(): void {
       this.dialogRef.close(false);
+   }
+
+   keybdDelete(event: Event): void
+   {
+      // event is a KeyboardEvent but this gives an error in the 'host' property
+      // due to a bug in Angular 21
+      console.log("keybdDelete: event: " + JSON.stringify(event));
+      event.preventDefault(); // stop key going to browser
+      this.onDelete();
+
    }
 
    onDelete(): void {
