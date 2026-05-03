@@ -1,0 +1,67 @@
+{
+ "result": true,
+ "processingtime": "0:00:00.001651",
+ "pos": 31,
+ "services": [
+  {
+   "pos": 1,
+   "servicename": "BBC One SE HD",
+   "servicereference": "1:0:19:1B13:802:2:11A0000:0:0:0:",
+   "program": 6931
+  },
+  {
+   "pos": 2,
+   "servicename": "BBC Two HD",
+   "servicereference": "1:0:19:1B1C:802:2:11A0000:0:0:0:",
+   "program": 6940
+  },
+  {
+   "pos": 3,
+   "servicename": "BBC Three HD",
+   "servicereference": "1:0:19:1B3B:802:2:11A0000:0:0:0:",
+   "program": 6971
+  },
+  {
+   "pos": 4,
+   "servicename": "BBC Four HD",
+   "servicereference": "1:0:19:289A:800:2:11A0000:0:0:0:",
+   "program": 10394
+  },
+  {
+   "pos": 5,
+   "servicename": "ITV1 HD",
+   "servicereference": "1:0:19:5104:841:2:11A0000:0:0:0:",
+   "program": 20740
+  },
+  {
+   "pos": 6,
+   "servicename": "ITV2 HD",
+   "servicereference": "1:0:19:50E6:841:2:11A0000:0:0:0:",
+   "program": 20710
+  },
+  {
+   "pos": 7,
+   "servicename": "ITV3 HD",
+   "servicereference": "1:0:19:523A:83F:2:11A0000:0:0:0:",
+   "program": 21050
+  },
+  {
+   "pos": 8,
+   "servicename": "ITV4 HD",
+   "servicereference": "1:0:19:5159:842:2:11A0000:0:0:0:",
+   "program": 20825
+  },
+  {
+   "pos": 9,
+   "servicename": "Channel 4 HD",
+   "servicereference": "1:0:19:1452:7F2:2:11A0000:0:0:0:",
+   "program": 5202
+  },
+  {
+   "pos": 10,
+   "servicename": "5 HD",
+   "servicereference": "1:0:19:83C:83D:2:11A0000:0:0:0:",
+   "program": 2108
+  }
+ ]
+}

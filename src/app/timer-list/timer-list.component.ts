@@ -2,7 +2,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { OWITimersService } from '../service/owitimers.service';
 import { Timer } from '../model/timer.model';
-import { CommonModule } from '@angular/common';
+
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,12 +18,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'timer-list',
-  imports: [CommonModule,
-            MatTableModule,
-            MatIconModule,
-            MatButtonModule,
-            LayoutModule
-         ],
+  imports: [MatTableModule, MatIconModule, MatButtonModule, LayoutModule],
   templateUrl: './timer-list.component.html',
   styleUrls: ['../../styles.scss',
               './timer-list.component.scss'

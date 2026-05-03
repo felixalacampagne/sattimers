@@ -7,7 +7,7 @@ import { TimerList } from '../model/timerlist.model';
 import { environment } from '../../environments/environment';
 import { Timer } from '../model/timer.model';
 import { Channel } from '../model/channel.model';
-import { ChannelList, Service } from '../model/channellist.model';
+import { Bouquet, BouquetList, ChannelList } from '../model/channellist.model';
 
 const ln  = "OWITimersSvc.";
 
@@ -19,11 +19,15 @@ export class OWITimersService {
    private serverhost : string = "";
    private apiurl : string ='';
    private apiapp : string = "";
+   private apiext : string = "";
+
+   // see https://github.com/E2OpenPlugins/e2openplugin-OpenWebif/wiki/OpenWebif-API-documentation#services-and-epg
    private timerlistapi : string ="timerlist";
    private timerdeleteapi : string = "timerdelete";
    private timeraddapi = "timeradd";
    private timerchangeapi = "timerchange";
-   private channelapi = "getallservices";
+   private allchannellistapi = "getallservices"; // returns services for all bouquets
+   private channellistapi = "getservices";       // returns services for a single bouquet
 
 
    constructor(private http : HttpClient)
@@ -35,14 +39,16 @@ export class OWITimersService {
       // window.location
       //    .host     gives server and port (in theory)
       //    .origin   gives the protocol, hostname and port number of a URL
-      if((typeof environment.api_host !== 'undefined') && (environment.api_host))
+      if(environment.api_host.length > 0)
       {
-            this.serverhost = environment.api_host;
+         this.serverhost = environment.api_host;
       }
       else
       {
          this.serverhost = window.location.origin;
       }
+
+      this.apiext = environment.api_ext;
       this.apiapp = environment.folder + environment.api_app;
       this.apiurl = this.serverhost + this.apiapp
       console.log(ln + "<init>: API url: %s", this.apiurl);
@@ -51,7 +57,7 @@ export class OWITimersService {
    getTimerList() : Observable<TimerList>
    {
       let url : string;
-      url = this.apiurl + this.timerlistapi;
+      url = this.makeApiname(this.timerlistapi);
       // this fails when the client pages are not served from the sat box: CORS shirt designed to prevent
       // normal users from doing anything useful with the code.
       // The sat box server does actually set the allowed origin to be anything ('*') but apparently
@@ -59,8 +65,11 @@ export class OWITimersService {
       // The only suggestion of a workaround for this might be to add '{ withCredentials: false }' to the get, after the
       // url. All other so-called solutions require changes to the server, which obviously can't be done when trying
       // to access a 'public' web api.
-      return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
-         .pipe( map((res:string) => this.stripAngular20GarbageFromResponse(res)) );
+      return this.http.get(url, {params: {nocache: this.nocacheval()}})
+         .pipe( map((res:any) =>
+            // this.stripAngular20GarbageFromResponse(res)
+         res
+      ) );
    }
 
    // Following "upgrade" to Angular20 the JSON data in the repsonse from 'ng serve'
@@ -156,24 +165,59 @@ export class OWITimersService {
       return Date.now();
    }
 
+   getFavouritesChannelList() : Observable<Channel[]>
+   {
+      let url : string;
+      let htparams : HttpParams = new HttpParams();
+
+
+      url = this.makeApiname(this.channellistapi);
+      htparams = htparams.append("sRef", '1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.favourites.tv" ORDER BY bouquet');
+      htparams = htparams.append("nocache", this.nocacheval());
+
+      // params encode to;
+      // api/getservices?sRef=1:7:1:0:0:0:0:0:0:0:FROM%20BOUQUET%20%22userbouquet.favourites.tv%22%20ORDER%20BY%20bouquet
+
+      // in fact it is not clear how to actually use this api
+      // it refers to an optional sRef parameter but sRef can apparently either be
+      // an actual serviceref for a single channel, eg. 1:0:19:2B8E:3F2:1:C00000:0:0:0:
+      // or something like a query which gives a list of channels for a bouquet, eg.
+      // '1:7:1:0:0:0:0:0:0:0:FROM BOUQUET "userbouquet.favourites.tv" ORDER BY bouquet'
+      // I guess it is usable as a GET since the getallservices is used that way
+
+
+
+      return this.http.get(url, {params: htparams})
+         .pipe( map((res:any) =>
+         {
+            // res = this.stripAngular20GarbageFromResponse(res);
+
+            let channels : Channel[] = [];
+            // This is probably not correct - requires some trial and error....
+            let channellist : ChannelList = res;
+            channels = channellist.services;
+            return channels;
+         }));
+   }
+
    getChannelList() : Observable<Channel[]>
    {
       let url : string;
 
-      url = this.apiurl + this.channelapi;
+      url = this.makeApiname(this.allchannellistapi);
 
-      return this.http.get(url, {params: {nocache: this.nocacheval()}, responseType: 'text'})
+      return this.http.get(url, {params: {nocache: this.nocacheval()}})
          .pipe( map((res:any) =>
          {
-            res = this.stripAngular20GarbageFromResponse(res);
+            // res = this.stripAngular20GarbageFromResponse(res);
 
             let channels : Channel[] = [];
             let bouquet : string = "Favourites (TV)";
             // console.log(ln + "getChannelList: result: %s", JSON.stringify(res));
-            let services : ChannelList = res;
+            let services : BouquetList = res;
             for (var id in services.services)
             {
-               let service : Service = services.services[id];
+               let service : Bouquet = services.services[id];
                if(service.servicename == bouquet)
                {
                   channels = service.subservices;
@@ -182,5 +226,23 @@ export class OWITimersService {
             }
             return channels;
          }));
+   }
+
+   makeApiname(api : string) : string
+   {
+      // Since Angular 20 files in the assets directory without an extension are served
+      // with garbage at the end of the file making them unparsable as JSON files.
+      // One workaround is to handle every response as a pure text, remove the garbage
+      // and then parse as JSON (used by sattimers). This is a very annoying thing to
+      // need to do for all the api of account and defeats the purpose of having the
+      // parsing handled automatically.
+      //
+      // It appears that giving the test data file and extension of .json prevents the
+      // garbage from being appended to the respone and thus allows the automatic
+      // to be performed. Obviously the actual apis should not be given an extension
+      // but using the environment file allows the extension to be added only when
+      // running in the backend less test environment. It still requires all api calls
+      // to be updated but not as annoying as converting everything to text.
+      return this.apiurl + api + this.apiext;
    }
 }
